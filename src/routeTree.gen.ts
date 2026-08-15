@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WantedRouteImport } from './routes/wanted'
+import { Route as BusinessesIndexRouteImport } from './routes/businesses.index'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
 import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WantedRoute = WantedRouteImport.update({
+  id: '/wanted',
+  path: '/wanted',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessesIndexRoute = BusinessesIndexRouteImport.update({
+  id: '/businesses/',
+  path: '/businesses/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
@@ -31,31 +43,46 @@ const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/wanted': typeof WantedRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
+  '/businesses/': typeof BusinessesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/wanted': typeof WantedRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
+  '/businesses': typeof BusinessesIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/wanted': typeof WantedRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
+  '/businesses/': typeof BusinessesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/marketplace/$id' | '/marketplace/'
+  fullPaths:
+    '/' | '/wanted' | '/marketplace/$id' | '/businesses/' | '/marketplace/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/marketplace/$id' | '/marketplace'
-  id: '__root__' | '/' | '/marketplace/$id' | '/marketplace/'
+  to: '/' | '/wanted' | '/marketplace/$id' | '/businesses' | '/marketplace'
+  id:
+    | '__root__'
+    | '/'
+    | '/wanted'
+    | '/marketplace/$id'
+    | '/businesses/'
+    | '/marketplace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  WantedRoute: typeof WantedRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
+  BusinessesIndexRoute: typeof BusinessesIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
 }
 
@@ -66,6 +93,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wanted': {
+      id: '/wanted'
+      path: '/wanted'
+      fullPath: '/wanted'
+      preLoaderRoute: typeof WantedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/businesses/': {
+      id: '/businesses/'
+      path: '/businesses'
+      fullPath: '/businesses/'
+      preLoaderRoute: typeof BusinessesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/marketplace/': {
@@ -87,7 +128,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  WantedRoute: WantedRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
+  BusinessesIndexRoute: BusinessesIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
 }
 export const routeTree = rootRouteImport
