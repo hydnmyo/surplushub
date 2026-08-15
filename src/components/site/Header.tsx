@@ -73,12 +73,12 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/auth" search={{ mode: "login" }}>
+            <Link to="/auth">
               Login
             </Link>
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <Link to="/auth" search={{ mode: "signup" }}>
+            <Link to="/auth">
               Sign Up
             </Link>
           </Button>
@@ -120,7 +120,7 @@ export function Header() {
           </nav>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" variant="outline" asChild>
-              <Link to="/auth" search={{ mode: "login" }} onClick={() => setOpen(false)}>
+              <Link to="/auth" onClick={() => setOpen(false)}>
                 Login
               </Link>
             </Button>
