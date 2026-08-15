@@ -46,7 +46,7 @@ function Index() {
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
-          <Badge variant="onDark" className="border border-forest-foreground/25 bg-forest-foreground/10 text-forest-foreground">
+          <Badge className="border border-forest-foreground/25 bg-forest-foreground/10 text-forest-foreground">
             Circular B2B marketplace · Myanmar
           </Badge>
           <h1 className="mt-5 max-w-3xl font-display text-4xl font-semibold leading-[1.05] text-forest-foreground sm:text-5xl lg:text-6xl">
@@ -126,7 +126,7 @@ function Index() {
         <SectionHead
           eyebrow="Marketplace categories"
           title="Every industrial material stream"
-          action={{ to: "/marketplace", label: "Browse marketplace" }}
+          action={{ to: "/marketplace" as const, label: "Browse marketplace" }}
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {CATEGORIES.map((c) => (
@@ -273,7 +273,7 @@ function SectionHead({
 }: {
   eyebrow: string;
   title: string;
-  action?: { to: string; label: string };
+  action?: { to: "/marketplace" | "/wanted"; label: string };
 }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
