@@ -26,9 +26,8 @@ import {
 } from "@/lib/data";
 
 export const Route = createFileRoute("/marketplace/")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    category: typeof s.category === "string" ? (s.category as CategoryId) : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { category?: CategoryId } =>
+    typeof s["category"] === "string" ? { category: s["category"] as CategoryId } : {},
   head: () => ({
     meta: [
       { title: "Marketplace — Surplus & Recyclable Materials | SurplusHub" },
