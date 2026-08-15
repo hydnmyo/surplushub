@@ -10,14 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ImpactRouteImport } from './routes/impact'
+import { Route as TrustRouteImport } from './routes/trust'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as BusinessesIndexRouteImport } from './routes/businesses.index'
+import { Route as BusinessesIdRouteImport } from './routes/businesses.$id'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
 import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpactRoute = ImpactRouteImport.update({
+  id: '/impact',
+  path: '/impact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrustRoute = TrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WantedRoute = WantedRouteImport.update({
@@ -28,6 +47,11 @@ const WantedRoute = WantedRouteImport.update({
 const BusinessesIndexRoute = BusinessesIndexRouteImport.update({
   id: '/businesses/',
   path: '/businesses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessesIdRoute = BusinessesIdRouteImport.update({
+  id: '/businesses/$id',
+  path: '/businesses/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
@@ -43,14 +67,22 @@ const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/impact': typeof ImpactRoute
+  '/trust': typeof TrustRoute
   '/wanted': typeof WantedRoute
+  '/businesses/$id': typeof BusinessesIdRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/businesses/': typeof BusinessesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/impact': typeof ImpactRoute
+  '/trust': typeof TrustRoute
   '/wanted': typeof WantedRoute
+  '/businesses/$id': typeof BusinessesIdRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/businesses': typeof BusinessesIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
@@ -58,7 +90,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/impact': typeof ImpactRoute
+  '/trust': typeof TrustRoute
   '/wanted': typeof WantedRoute
+  '/businesses/$id': typeof BusinessesIdRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/businesses/': typeof BusinessesIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
@@ -66,13 +102,34 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/wanted' | '/marketplace/$id' | '/businesses/' | '/marketplace/'
+    | '/'
+    | '/how-it-works'
+    | '/impact'
+    | '/trust'
+    | '/wanted'
+    | '/businesses/$id'
+    | '/marketplace/$id'
+    | '/businesses/'
+    | '/marketplace/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/wanted' | '/marketplace/$id' | '/businesses' | '/marketplace'
+  to:
+    | '/'
+    | '/how-it-works'
+    | '/impact'
+    | '/trust'
+    | '/wanted'
+    | '/businesses/$id'
+    | '/marketplace/$id'
+    | '/businesses'
+    | '/marketplace'
   id:
     | '__root__'
     | '/'
+    | '/how-it-works'
+    | '/impact'
+    | '/trust'
     | '/wanted'
+    | '/businesses/$id'
     | '/marketplace/$id'
     | '/businesses/'
     | '/marketplace/'
@@ -80,7 +137,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HowItWorksRoute: typeof HowItWorksRoute
+  ImpactRoute: typeof ImpactRoute
+  TrustRoute: typeof TrustRoute
   WantedRoute: typeof WantedRoute
+  BusinessesIdRoute: typeof BusinessesIdRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
   BusinessesIndexRoute: typeof BusinessesIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
@@ -95,6 +156,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impact': {
+      id: '/impact'
+      path: '/impact'
+      fullPath: '/impact'
+      preLoaderRoute: typeof ImpactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trust': {
+      id: '/trust'
+      path: '/trust'
+      fullPath: '/trust'
+      preLoaderRoute: typeof TrustRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wanted': {
       id: '/wanted'
       path: '/wanted'
@@ -107,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/businesses'
       fullPath: '/businesses/'
       preLoaderRoute: typeof BusinessesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/businesses/$id': {
+      id: '/businesses/$id'
+      path: '/businesses/$id'
+      fullPath: '/businesses/$id'
+      preLoaderRoute: typeof BusinessesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/marketplace/': {
@@ -128,7 +217,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HowItWorksRoute: HowItWorksRoute,
+  ImpactRoute: ImpactRoute,
+  TrustRoute: TrustRoute,
   WantedRoute: WantedRoute,
+  BusinessesIdRoute: BusinessesIdRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
   BusinessesIndexRoute: BusinessesIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
