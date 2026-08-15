@@ -147,7 +147,7 @@ export function askEcoMatch(question: string): AiAnswer {
       intent: "Material Information",
       text: `Potential business uses for ${cat ? CATEGORIES.find((c) => c.id === cat)?.name.toLowerCase() : "this material"}:`,
       bullets: sample?.uses ?? ["Manufacturing inputs", "Packaging", "Reprocessing"],
-      listings: sample ? [{ listing: sample, match: 88 }] : undefined,
+      ...(sample ? { listings: [{ listing: sample, match: 88 }] } : {}),
       note: "Potential uses are suggestions only — suitability is not guaranteed.",
     };
   }
@@ -171,7 +171,7 @@ export function askEcoMatch(question: string): AiAnswer {
 
   // 1/2/3. Product + budget + smart search
   const unitCap = q.match(/under\s*([\d,]+)/);
-  const perUnitCap = unitCap ? parseInt(unitCap[1].replace(/,/g, ""), 10) : null;
+  const perUnitCap = unitCap?.[1] ? parseInt(unitCap[1].replace(/,/g, ""), 10) : null;
 
   let pool = LISTINGS.filter((l) => l.status !== "Hidden");
   if (cat) pool = pool.filter((l) => l.category === cat);
