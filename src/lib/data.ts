@@ -3,7 +3,7 @@ import plasticImg from "@/assets/cat-plastic.jpg";
 import paperImg from "@/assets/cat-paper.jpg";
 import metalImg from "@/assets/cat-metal.jpg";
 import woodImg from "@/assets/cat-wood.jpg";
-import glassImg from "@/assets/cat-glass.jpg";
+import glassImg from "@/assets/cat-glass-recycled.png";
 import rubberImg from "@/assets/cat-rubber.jpg";
 import constructionImg from "@/assets/cat-construction.jpg";
 import industrialImg from "@/assets/cat-industrial.jpg";
@@ -24,11 +24,9 @@ export type CategoryId =
 export interface Category {
   id: CategoryId;
   name: string;
-  icon: string;
   blurb: string;
   image: string;
   active: boolean;
-  listings: number;
   tons: number;
 }
 
@@ -36,101 +34,81 @@ export const CATEGORIES: Category[] = [
   {
     id: "textile",
     name: "Textile & Fabric",
-    icon: "♻️",
     blurb: "Fabric, denim, yarn, leather, thread, zippers, buttons",
     image: textileImg,
     active: true,
-    listings: 412,
     tons: 4.2,
   },
   {
     id: "plastic",
     name: "Plastic",
-    icon: "🧴",
     blurb: "Bottles, containers, packaging, plastic sheets, scraps",
     image: plasticImg,
     active: true,
-    listings: 386,
     tons: 3.1,
   },
   {
     id: "paper",
     name: "Paper & Cardboard",
-    icon: "📦",
     blurb: "Boxes, paper rolls, sheets, packaging, paper scraps",
     image: paperImg,
     active: true,
-    listings: 344,
     tons: 2.3,
   },
   {
     id: "metal",
     name: "Metal",
-    icon: "🔩",
     blurb: "Aluminum, steel, metal sheets, wires, metal offcuts",
     image: metalImg,
     active: true,
-    listings: 297,
     tons: 1.8,
   },
   {
     id: "wood",
     name: "Wood",
-    icon: "🪵",
     blurb: "Timber, plywood, pallets, crates, wood offcuts",
     image: woodImg,
     active: true,
-    listings: 233,
     tons: 0.7,
   },
   {
     id: "glass",
     name: "Glass",
-    icon: "🫙",
     blurb: "Bottles, jars, containers, glass sheets",
     image: glassImg,
     active: true,
-    listings: 152,
     tons: 0.2,
   },
   {
     id: "rubber",
     name: "Rubber",
-    icon: "🛞",
     blurb: "Rubber sheets, scraps, offcuts",
     image: rubberImg,
     active: true,
-    listings: 98,
     tons: 0.1,
   },
   {
     id: "construction",
     name: "Construction",
-    icon: "🧱",
     blurb: "Tiles, pipes, plywood, building-material surplus",
     image: constructionImg,
     active: true,
-    listings: 176,
     tons: 1.1,
   },
   {
     id: "industrial",
     name: "Industrial Components",
-    icon: "⚙️",
     blurb: "Fasteners, containers, accessories, production components",
     image: industrialImg,
     active: true,
-    listings: 141,
     tons: 0.6,
   },
   {
     id: "other",
     name: "Other",
-    icon: "📦",
     blurb: "Other legitimate surplus or recyclable business materials",
     image: otherImg,
     active: true,
-    listings: 91,
     tons: 0.3,
   },
 ];
@@ -173,6 +151,7 @@ export const LOCATIONS = [
 
 export interface Business {
   id: string;
+  userId?: string;
   name: string;
   initials: string;
   industry: string;
@@ -186,12 +165,20 @@ export interface Business {
   contact: { person: string; phone: string; email: string; address: string };
   hours: string;
   website: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  socialLinks?: {
+    facebook: string;
+    linkedin: string;
+    instagram: string;
+  };
 }
 
 export const BUSINESSES: Business[] = [
   {
     id: "green-stitch",
-    name: "Green Stitch Textile",
+    userId: "user-green-stitch",
+    name: "Green Stitch Textile Co.",
     initials: "GS",
     industry: "Garment Manufacturing",
     location: "Yangon",
@@ -1063,6 +1050,8 @@ export const LISTINGS: Listing[] = [
 export const listingById = (id: string) => LISTINGS.find((l) => l.id === id);
 export const listingsBySeller = (sellerId: string) =>
   LISTINGS.filter((l) => l.sellerId === sellerId);
+export const listingCountByCategory = (categoryId: CategoryId) =>
+  LISTINGS.filter((listing) => listing.category === categoryId).length;
 
 export interface WantedPost {
   id: string;

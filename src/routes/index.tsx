@@ -4,8 +4,7 @@ import heroImg from "@/assets/hero-warehouse.jpg";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MaterialCard } from "@/components/site/MaterialCard";
-import { CircularLoop } from "@/components/site/CircularLoop";
-import { CATEGORIES, LISTINGS, PLATFORM_STATS, WANTED } from "@/lib/data";
+import { CATEGORIES, LISTINGS, WANTED, listingCountByCategory } from "@/lib/data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -56,10 +55,6 @@ function Index() {
             A circular B2B marketplace where businesses can sell surplus materials and find the resources
             they need.
           </p>
-          <p className="mt-3 text-sm font-medium uppercase tracking-[0.18em] text-forest-foreground/60">
-            Surplus → Discovery → Match → Connect → Deal → Reuse
-          </p>
-
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="xl" variant="hero" asChild>
               <Link to="/marketplace">
@@ -74,19 +69,6 @@ function Index() {
             </Button>
           </div>
 
-          <dl className="mt-14 grid max-w-3xl grid-cols-2 gap-6 sm:grid-cols-4">
-            {[
-              ["Businesses", `${PLATFORM_STATS.businesses}+`],
-              ["Active listings", PLATFORM_STATS.activeListings.toLocaleString("en-US")],
-              ["Completed deals", PLATFORM_STATS.completedTransactions.toString()],
-              ["Materials exchanged", PLATFORM_STATS.materialsExchanged],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-xs uppercase tracking-wide text-forest-foreground/55">{label}</dt>
-                <dd className="mt-1 font-display text-2xl font-semibold text-forest-foreground">{value}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
       </section>
 
@@ -148,11 +130,12 @@ function Index() {
               </div>
               <div className="p-4">
                 <p className="font-display text-sm font-semibold">
-                  <span className="mr-1.5">{c.icon}</span>
                   {c.name}
                 </p>
                 <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{c.blurb}</p>
-                <p className="mt-3 text-xs font-medium text-primary">{c.listings} listings</p>
+                <p className="mt-3 text-xs font-medium text-primary">
+                  {listingCountByCategory(c.id)} {listingCountByCategory(c.id) === 1 ? "listing" : "listings"}
+                </p>
               </div>
             </Link>
           ))}
@@ -170,24 +153,6 @@ function Index() {
           {featured.map((l) => (
             <MaterialCard key={l.id} listing={l} />
           ))}
-        </div>
-      </section>
-
-      {/* Circular loop */}
-      <section className="bg-forest py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-forest-foreground/55">
-            The circular loop
-          </p>
-          <h2 className="mt-3 max-w-2xl font-display text-3xl font-semibold text-forest-foreground sm:text-4xl">
-            One business's surplus is another business's resource.
-          </h2>
-          <p className="mt-3 max-w-2xl text-forest-foreground/70">
-            SurplusHub keeps usable materials inside the economy instead of letting them be discarded.
-          </p>
-          <div className="mt-10">
-            <CircularLoop onDark />
-          </div>
         </div>
       </section>
 
