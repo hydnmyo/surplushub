@@ -8,15 +8,16 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/site/Logo";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { CURRENT_USER, type AuthUser } from "@/lib/auth";
+import { accountForEmail, CURRENT_USER } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: search["redirect"] === "/messenger" ? "/messenger" : undefined,
+    tab: search["tab"] === "register" ? "register" : undefined,
   }),
   head: () => ({
     meta: [
-      { title: "Business Sign In & Registration | SurplusHub" },
+      { title: "Sign In & Registration | SurplusHub" },
       {
         name: "description",
         content:
@@ -34,20 +35,30 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { redirect } = Route.useSearch();
+  const { redirect, tab } = Route.useSearch();
   const { signIn } = useAuth();
-  const go = (user: AuthUser, msg: string) => () => {
+  const [email, setEmail] = useState("");
+
+  const signInWithEmail = () => {
+    const user = accountForEmail(email);
     signIn(user);
-    toast.success(msg);
+    toast.success(`Signed in as ${user.name} (demo)`);
+
     if (redirect === "/messenger") {
       void navigate({ to: "/messenger", replace: true });
-      return;
-    }
-    if (user.role === "business") {
+    } else if (user.role === "admin") {
+      void navigate({ to: "/admin", replace: true });
+    } else if (user.role === "business") {
       void navigate({ to: "/dashboard", replace: true });
-      return;
+    } else {
+      void navigate({ to: "/marketplace", replace: true });
     }
-    void navigate({ to: "/marketplace", replace: true });
+  };
+
+  const registerBusiness = () => {
+    signIn(CURRENT_USER);
+    toast.success("Business registered — verification pending");
+    void navigate({ to: "/dashboard", replace: true });
   };
 
   return (
@@ -55,7 +66,7 @@ function AuthPage() {
       <div className="flex justify-center">
         <Logo />
       </div>
-      <Tabs defaultValue="signin" className="mt-8">
+      <Tabs defaultValue={tab ?? "signin"} className="mt-8">
         <TabsList className="w-full">
           <TabsTrigger value="signin" className="flex-1">
             Sign In
@@ -66,16 +77,24 @@ function AuthPage() {
         </TabsList>
 
         <TabsContent value="signin" className="surface-card mt-5 space-y-3 p-6">
-          <F label="Business email" placeholder="you@company.com" type="email" />
+          <div>
+            <Label>Email</Label>
+            <Input
+              className="mt-1.5"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
           <F label="Password" placeholder="••••••••" type="password" />
-          <Button
-            className="w-full"
-            onClick={go(CURRENT_USER, "Signed in as Green Stitch Textile (demo)")}
-          >
+          <Button className="w-full" onClick={signInWithEmail}>
             Sign In
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Demo prototype — any credentials work.
+            Demo prototype — any password works. Sign in with an email containing "admin" for the
+            admin console, or "buyer" for a buyer account — anything else signs in as a demo
+            business.
           </p>
         </TabsContent>
 
@@ -88,10 +107,7 @@ function AuthPage() {
           <F label="Phone" placeholder="+95 9 xxx xxx xxx" />
           <F label="Password" placeholder="••••••••" type="password" />
           <F label="Business registration document" type="file" />
-          <Button
-            className="w-full"
-            onClick={go(CURRENT_USER, "Business registered — verification pending")}
-          >
+          <Button className="w-full" onClick={registerBusiness}>
             Create Business Account
           </Button>
         </TabsContent>

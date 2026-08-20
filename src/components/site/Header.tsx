@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, ChevronDown, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
+import { Bell, ChevronDown, LayoutDashboard, LogOut, Menu, ShieldCheck, X } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +36,7 @@ export function Header() {
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const aboutCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isBusiness = currentUser?.role === "business";
+  const isAdmin = currentUser?.role === "admin";
   const notifications = isBusiness ? SELLER_NOTIFICATIONS : BUYER_NOTIFICATIONS;
 
   const showAboutMenu = () => {
@@ -142,7 +143,18 @@ export function Header() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {isBusiness ? (
+          {isAdmin ? (
+            <>
+              <Button size="sm" asChild>
+                <Link to="/admin">
+                  <ShieldCheck className="size-4" /> Admin Console
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" aria-label="Sign out" onClick={handleSignOut}>
+                <LogOut className="size-4" />
+              </Button>
+            </>
+          ) : isBusiness ? (
             <>
               <Button size="sm" asChild>
                 <Link to="/dashboard">
@@ -165,12 +177,12 @@ export function Header() {
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/auth" search={{ redirect: undefined }}>
+                <Link to="/auth" search={{ redirect: undefined, tab: undefined }}>
                   Login
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/auth" search={{ redirect: undefined }}>
+                <Link to="/auth" search={{ redirect: undefined, tab: "register" }}>
                   Sign Up
                 </Link>
               </Button>
@@ -266,7 +278,18 @@ export function Header() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            {isBusiness ? (
+            {isAdmin ? (
+              <>
+                <Button size="sm" asChild>
+                  <Link to="/admin" onClick={closeMobileNavigation}>
+                    <ShieldCheck className="size-4" /> Admin Console
+                  </Link>
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleSignOut}>
+                  <LogOut className="size-4" /> Sign Out
+                </Button>
+              </>
+            ) : isBusiness ? (
               <>
                 <Button size="sm" asChild>
                   <Link to="/dashboard" onClick={closeMobileNavigation}>
@@ -291,12 +314,20 @@ export function Header() {
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild>
-                  <Link to="/auth" search={{ redirect: undefined }} onClick={closeMobileNavigation}>
+                  <Link
+                    to="/auth"
+                    search={{ redirect: undefined, tab: undefined }}
+                    onClick={closeMobileNavigation}
+                  >
                     Login
                   </Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
-                  <Link to="/auth" search={{ redirect: undefined }} onClick={closeMobileNavigation}>
+                  <Link
+                    to="/auth"
+                    search={{ redirect: undefined, tab: "register" }}
+                    onClick={closeMobileNavigation}
+                  >
                     Sign Up
                   </Link>
                 </Button>

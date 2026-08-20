@@ -18,7 +18,7 @@ export function MessengerButton({ onNavigate }: { onNavigate?: () => void }) {
       return;
     }
 
-    void navigate({ to: "/auth", search: { redirect: "/messenger" } });
+    void navigate({ to: "/auth", search: { redirect: "/messenger", tab: undefined } });
   };
 
   return (
