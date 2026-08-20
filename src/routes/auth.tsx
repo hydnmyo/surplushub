@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/site/Logo";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { CURRENT_USER, type AuthUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -20,9 +22,15 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const go = (msg: string) => () => {
+  const { signIn } = useAuth();
+  const go = (user: AuthUser, msg: string) => () => {
+    signIn(user);
     toast.success(msg);
-    void navigate({ to: "/dashboard" });
+    if (user.role === "business") {
+      void navigate({ to: "/dashboard", replace: true });
+      return;
+    }
+    void navigate({ to: "/marketplace", replace: true });
   };
 
   return (
@@ -37,7 +45,7 @@ function AuthPage() {
         <TabsContent value="signin" className="surface-card mt-5 space-y-3 p-6">
           <F label="Business email" placeholder="you@company.com" type="email" />
           <F label="Password" placeholder="••••••••" type="password" />
-          <Button className="w-full" onClick={go("Signed in as Green Stitch Textile (demo)")}>Sign In</Button>
+          <Button className="w-full" onClick={go(CURRENT_USER, "Signed in as Green Stitch Textile (demo)")}>Sign In</Button>
           <p className="text-center text-xs text-muted-foreground">Demo prototype — any credentials work.</p>
         </TabsContent>
 
@@ -50,7 +58,7 @@ function AuthPage() {
           <F label="Phone" placeholder="+95 9 xxx xxx xxx" />
           <F label="Password" placeholder="••••••••" type="password" />
           <F label="Business registration document" type="file" />
-          <Button className="w-full" onClick={go("Business registered — verification pending")}>Create Business Account</Button>
+          <Button className="w-full" onClick={go(CURRENT_USER, "Business registered — verification pending")}>Create Business Account</Button>
         </TabsContent>
       </Tabs>
     </div>
