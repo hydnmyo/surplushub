@@ -267,7 +267,7 @@ function FloatingAssistant({ onOpen }: { onOpen: () => void }) {
         className="group ecomatch-robot-button flex flex-col items-center gap-1 rounded-2xl bg-transparent p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         aria-label="Open Loopi chat"
       >
-        <span className="ecomatch-robot-shell flex size-[72px] items-center justify-center bg-transparent transition-transform group-hover:scale-105 sm:size-[100px]">
+        <span className="ecomatch-robot-shell flex size-16 items-center justify-center bg-transparent transition-transform group-hover:scale-105 sm:size-[84px]">
           <img
             src={ROBOT_IMAGE_SRC}
             alt=""
