@@ -74,10 +74,15 @@ export interface Order {
   deliveredAt?: string;
   inspectionDeadline?: string;
   acceptedAt?: string;
+  /** True when acceptedAt was set by the inspection-window timeout rather than a buyer click. */
+  autoAccepted?: boolean;
   payoutStatus: PayoutStatus;
   payoutRef?: string;
   payoutAt?: string;
   disputeReason?: string;
+  /** How an admin resolved a dispute, for the record. Absent while still open. */
+  disputeResolution?: string;
+  disputeResolvedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -127,6 +132,15 @@ export const ordersForSeller = (orders: Order[], sellerBusinessId: string) =>
 
 export const payoutQueue = (orders: Order[]) =>
   orders.filter((order) => order.status === "COMPLETED" && order.payoutStatus === "PENDING");
+
+export const disputedOrders = (orders: Order[]) =>
+  orders.filter((order) => order.status === "DISPUTED");
+
+/** An order past its inspection deadline with no buyer action — eligible to auto-complete. */
+export const isDueForAutoAccept = (order: Order, now: number = Date.now()) =>
+  order.status === "DELIVERED" &&
+  Boolean(order.inspectionDeadline) &&
+  new Date(order.inspectionDeadline as string).getTime() <= now;
 
 const hoursAgo = (hours: number) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 

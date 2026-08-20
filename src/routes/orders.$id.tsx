@@ -181,6 +181,16 @@ function OrderDetail() {
         </div>
       ) : null}
 
+      {order.autoAccepted ? (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-md border border-primary/25 bg-mint p-4 text-sm">
+          <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+          <p className="text-accent-foreground">
+            Automatically accepted after the 48-hour inspection window passed with no response.
+            Seller payout is queued.
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_0.9fr]">
         <div className="surface-card p-6">
           <h2 className="font-display text-xl font-semibold">Fulfillment timeline</h2>
@@ -213,7 +223,10 @@ function OrderDetail() {
           {order.acceptedAt ? (
             <div>
               <dt className="text-xs uppercase tracking-wide text-muted-foreground">Accepted</dt>
-              <dd className="mt-1 text-sm font-medium">{formatDateTime(order.acceptedAt)}</dd>
+              <dd className="mt-1 text-sm font-medium">
+                {formatDateTime(order.acceptedAt)}
+                {order.autoAccepted ? " (auto-accepted)" : ""}
+              </dd>
             </div>
           ) : null}
         </dl>
@@ -221,6 +234,15 @@ function OrderDetail() {
           <div className="mt-5 rounded-md border border-destructive/30 bg-destructive/10 p-4">
             <p className="text-sm font-semibold text-destructive">Problem report</p>
             <p className="mt-1 text-sm text-muted-foreground">{order.disputeReason}</p>
+          </div>
+        ) : null}
+        {order.disputeResolution ? (
+          <div className="mt-3 rounded-md border border-primary/25 bg-mint p-4">
+            <p className="text-sm font-semibold text-accent-foreground">
+              Resolved{order.status === "REFUNDED" ? " — buyer refunded" : " — payout released"}
+              {order.disputeResolvedAt ? ` · ${formatDateTime(order.disputeResolvedAt)}` : ""}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{order.disputeResolution}</p>
           </div>
         ) : null}
       </div>
