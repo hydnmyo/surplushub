@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BUSINESSES, LISTINGS, PLATFORM_STATS, TRANSACTIONS } from "@/lib/data";
 import { PayoutQueue } from "@/components/admin/PayoutQueue";
+import { DisputeConsole } from "@/components/admin/DisputeConsole";
 import { RevenueSummary } from "@/components/admin/RevenueSummary";
 import { useAuth } from "@/components/auth/AuthProvider";
 
@@ -66,6 +67,7 @@ function Admin() {
           <TabsTrigger value="verification">Verification</TabsTrigger>
           <TabsTrigger value="listings">Listings</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="disputes">Disputes</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="revenue">Revenue</TabsTrigger>
         </TabsList>
@@ -125,6 +127,10 @@ function Admin() {
             </div>
           ))}
         </TabsContent>
+        <TabsContent value="disputes" className="mt-6">
+          <DisputeConsole />
+        </TabsContent>
+
         <TabsContent value="payouts" className="mt-6">
           <PayoutQueue />
         </TabsContent>

@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { SEED_ORDERS, type NewOrder, type Order } from "@/lib/orders";
+import { SEED_ORDERS, isDueForAutoAccept, type NewOrder, type Order } from "@/lib/orders";
 
 const STORAGE_KEY = "surplushub.orders.v1";
 
@@ -41,6 +41,36 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     }
     return next;
   }, []);
+
+  // Buyers who never inspect a delivered order should not permanently block the
+  // seller's payout. This simulates the server-side job that would run this
+  // sweep in production: any DELIVERED order past its inspection deadline is
+  // auto-completed, exactly as if the buyer had clicked Accept.
+  useEffect(() => {
+    const sweepAutoAccept = () => {
+      setOrders((current) => {
+        const now = Date.now();
+        let changed = false;
+        const next = current.map((order) => {
+          if (!isDueForAutoAccept(order, now)) return order;
+          changed = true;
+          return {
+            ...order,
+            status: "COMPLETED" as const,
+            acceptedAt: order.inspectionDeadline as string,
+            autoAccepted: true,
+            payoutStatus: "PENDING" as const,
+            updatedAt: new Date().toISOString(),
+          };
+        });
+        return changed ? persist(next) : current;
+      });
+    };
+
+    sweepAutoAccept();
+    const interval = window.setInterval(sweepAutoAccept, 30_000);
+    return () => window.clearInterval(interval);
+  }, [persist]);
 
   const createOrder = useCallback(
     (input: NewOrder) => {
