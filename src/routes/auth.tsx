@@ -94,6 +94,18 @@ function AuthPage() {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error("Supabase did not return a user after sign-up.");
 
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: authData.user.id,
+        email: authData.user.email ?? email,
+        full_name: contactPerson,
+        company_name: companyName,
+        phone,
+        location,
+        is_verified: false,
+      });
+
+      if (profileError) throw profileError;
+
       const { data: business, error: businessError } = await supabase
         .from("businesses")
         .insert({

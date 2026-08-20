@@ -8,6 +8,42 @@ export type Database = {
   };
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          company_name: string;
+          created_at: string;
+          email: string | null;
+          full_name: string | null;
+          id: string;
+          is_verified: boolean;
+          location: string | null;
+          phone: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          company_name: string;
+          created_at?: string;
+          email?: string | null;
+          full_name?: string | null;
+          id: string;
+          is_verified?: boolean;
+          location?: string | null;
+          phone?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          company_name?: string;
+          created_at?: string;
+          email?: string | null;
+          full_name?: string | null;
+          id?: string;
+          is_verified?: boolean;
+          location?: string | null;
+          phone?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       businesses: {
         Row: {
           categories: Database["public"]["Enums"]["category_id"][];
