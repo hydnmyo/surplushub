@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import {
   Select,
@@ -15,11 +16,17 @@ import {
 } from "@/components/ui/select";
 import { MaterialCard } from "@/components/site/MaterialCard";
 import {
+  BUSINESSES,
   CATEGORIES,
   CONDITIONS,
   LOCATIONS,
+  MATERIAL_TYPES,
   type CategoryId,
+  type Condition,
+  type Listing,
+  type MaterialType,
 } from "@/lib/data";
+import { MARKETPLACE_LISTINGS } from "@/lib/marketplace-data";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/marketplace/")({
@@ -36,7 +43,8 @@ export const Route = createFileRoute("/marketplace/")({
       { property: "og:title", content: "SurplusHub Marketplace" },
       {
         property: "og:description",
-        content: "Search textile, plastic, paper, metal, wood, glass, rubber and construction surplus.",
+        content:
+          "Search textile, plastic, paper, metal, wood, glass, rubber and construction surplus.",
       },
     ],
   }),
@@ -48,84 +56,205 @@ const SORTS = [
   "Newest",
   "Price Low to High",
   "Price High to Low",
+  "Highest Rated",
+  "Most Popular",
 ] as const;
+
+type ListingRow = {
+  id: string;
+  title: string;
+  category: CategoryId;
+  material_type: MaterialType;
+  condition: Condition;
+  composition: string;
+  quantity: number;
+  unit: string;
+  price: number | null;
+  price_unit: string;
+  min_order: string;
+  location: string;
+  available_from: string;
+  seller_id: string;
+  requires_processing: boolean;
+  pickup_available: boolean;
+  featured: boolean;
+  views: number;
+  inquiries: number;
+  popularity: number;
+  status: Listing["status"];
+  description: string;
+  uses: string[];
+  created_at: string;
+  businesses?: {
+    id: string;
+    name: string;
+    verified: boolean;
+    rating: number;
+  } | null;
+};
+
+function sellerIdForCard(row: ListingRow) {
+  const seller = BUSINESSES.find(
+    (business) => business.id === row.seller_id || business.name === row.businesses?.name,
+  );
+
+  return seller?.id ?? row.seller_id;
+}
+
+function toListing(row: ListingRow): Listing {
+  const createdAt = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+  const postedDaysAgo = Number.isFinite(createdAt)
+    ? Math.max(0, Math.floor((Date.now() - createdAt) / 86_400_000))
+    : 0;
+
+  return {
+    id: row.id,
+    title: row.title,
+    category: row.category,
+    materialType: row.material_type,
+    condition: row.condition,
+    composition: row.composition,
+    quantity: Number(row.quantity),
+    unit: row.unit,
+    price: row.price === null ? null : Number(row.price),
+    priceUnit: row.price_unit,
+    minOrder: row.min_order,
+    location: row.location,
+    availableFrom: row.available_from,
+    sellerId: sellerIdForCard(row),
+    requiresProcessing: row.requires_processing,
+    pickupAvailable: row.pickup_available,
+    featured: row.featured,
+    views: row.views,
+    inquiries: row.inquiries,
+    popularity: row.popularity,
+    postedDaysAgo,
+    status: row.status,
+    description: row.description,
+    uses: row.uses ?? [],
+  };
+}
 
 function Marketplace() {
   const { category } = Route.useSearch();
-  const [listings, setListings] = useState<any[]>([]);
+  const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Filter States
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>(category ?? "all");
+  const [type, setType] = useState<string>("all");
   const [cond, setCond] = useState<string>("all");
   const [loc, setLoc] = useState<string>("all");
   const [sort, setSort] = useState<string>("Recommended");
   const [maxPrice, setMaxPrice] = useState(50000);
   const [minQty, setMinQty] = useState(0);
+  const [minRating, setMinRating] = useState<string>("all");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [pickupOnly, setPickupOnly] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
-  // Fetch listings directly from Supabase based on active filters
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchListings() {
       setLoading(true);
 
-      let query = supabase.from("listings").select("*");
+      try {
+        let query = supabase
+          .from("listings")
+          .select("*, businesses(id, name, verified, rating)")
+          .neq("status", "Hidden");
 
-      if (q.trim()) {
-        query = query.ilike("title", `%${q.trim()}%`);
+        const search = q.trim();
+        if (search) {
+          const escaped = search.replaceAll("%", "\\%").replaceAll("_", "\\_");
+          query = query.or(
+            `title.ilike.%${escaped}%,composition.ilike.%${escaped}%,description.ilike.%${escaped}%`,
+          );
+        }
+
+        if (cat !== "all") query = query.eq("category", cat as CategoryId);
+        if (type !== "all") query = query.eq("material_type", type as MaterialType);
+        if (cond !== "all") query = query.eq("condition", cond as Condition);
+        if (loc !== "all") query = query.eq("location", loc);
+        if (pickupOnly) query = query.eq("pickup_available", true);
+        if (processing) query = query.eq("requires_processing", true);
+
+        query = query.lte("price", maxPrice).gte("quantity", minQty);
+
+        switch (sort) {
+          case "Newest":
+            query = query.order("created_at", { ascending: false });
+            break;
+          case "Price Low to High":
+            query = query.order("price", { ascending: true, nullsFirst: false });
+            break;
+          case "Price High to Low":
+            query = query.order("price", { ascending: false, nullsFirst: false });
+            break;
+          case "Most Popular":
+            query = query.order("views", { ascending: false });
+            break;
+          default:
+            query = query
+              .order("featured", { ascending: false })
+              .order("popularity", { ascending: false });
+            break;
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        let next = ((data ?? []) as unknown as ListingRow[]).map(toListing);
+
+        if (minRating !== "all" || verifiedOnly || sort === "Highest Rated") {
+          next = next.filter((listing) => {
+            const seller = BUSINESSES.find((business) => business.id === listing.sellerId);
+            if (minRating !== "all" && (seller?.rating ?? 0) < Number(minRating)) return false;
+            if (verifiedOnly && !seller?.verified) return false;
+            return true;
+          });
+        }
+
+        if (sort === "Highest Rated") {
+          next = [...next].sort((a, b) => {
+            const aRating = BUSINESSES.find((business) => business.id === a.sellerId)?.rating ?? 0;
+            const bRating = BUSINESSES.find((business) => business.id === b.sellerId)?.rating ?? 0;
+            return bRating - aRating;
+          });
+        }
+
+        if (!cancelled) setListings(next);
+      } catch (error) {
+        console.error("Unable to fetch marketplace listings from Supabase", error);
+        const fallback = MARKETPLACE_LISTINGS.filter((listing) => listing.status !== "Hidden");
+        if (!cancelled) setListings(fallback);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-
-      if (cat !== "all") {
-        query = query.eq("category", cat);
-      }
-
-      if (cond !== "all") {
-        query = query.eq("condition", cond);
-      }
-
-      if (loc !== "all") {
-        query = query.eq("location", loc);
-      }
-
-      query = query.lte("price_mmk", maxPrice);
-
-      if (minQty > 0) {
-        query = query.gte("quantity_available", minQty);
-      }
-
-      switch (sort) {
-        case "Newest":
-          query = query.order("created_at", { ascending: false });
-          break;
-        case "Price Low to High":
-          query = query.order("price_mmk", { ascending: true });
-          break;
-        case "Price High to Low":
-          query = query.order("price_mmk", { ascending: false });
-          break;
-        default:
-          query = query.order("created_at", { ascending: false });
-          break;
-      }
-
-      const { data, error } = await query;
-
-      if (!error && data) {
-        setListings(data);
-      }
-      setLoading(false);
     }
 
-    const handler = setTimeout(() => {
-      fetchListings();
+    const handler = window.setTimeout(() => {
+      void fetchListings();
     }, 300);
 
-    return () => clearTimeout(handler);
-  }, [q, cat, cond, loc, sort, maxPrice, minQty]);
-
-  const selectedCategoryName = (CATEGORIES as any[]).find(
-    (c) => (c.id ?? c.key ?? c.slug) === cat
-  )?.name;
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handler);
+    };
+  }, [
+    q,
+    cat,
+    type,
+    cond,
+    loc,
+    sort,
+    maxPrice,
+    minQty,
+    minRating,
+    verifiedOnly,
+    pickupOnly,
+    processing,
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -140,7 +269,7 @@ function Marketplace() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search materials by name..."
+            placeholder="Search materials, categories, suppliers..."
             className="h-11 pl-9"
           />
         </div>
@@ -164,33 +293,40 @@ function Marketplace() {
             <SlidersHorizontal className="size-4" /> Filters
           </p>
 
-            <FilterSelect
-              label="Category"
-              value={cat}
-              onChange={setCat}
-              options={(CATEGORIES as unknown as any[]).map((c) => ({
-                value: String(c.id ?? c.key ?? c.slug ?? c.name),
-                label: String(c.name ?? c.label),
-              }))}
-            />
-            <FilterSelect
-              label="Condition"
-              value={cond}
-              onChange={setCond}
-              options={CONDITIONS.map((c) => ({
-                value: String(c),
-                label: String(c),
-              }))}
-            />
-            <FilterSelect
-              label="Location"
-              value={loc}
-              onChange={setLoc}
-              options={LOCATIONS.map((l) => ({
-                value: String(l),
-                label: String(l),
-              }))}
-            />
+          <FilterSelect
+            label="Category"
+            value={cat}
+            onChange={setCat}
+            options={CATEGORIES.map((c) => ({ value: c.id, label: c.name }))}
+          />
+          <FilterSelect
+            label="Material Type"
+            value={type}
+            onChange={setType}
+            options={MATERIAL_TYPES.map((t) => ({ value: t, label: t }))}
+          />
+          <FilterSelect
+            label="Condition"
+            value={cond}
+            onChange={setCond}
+            options={CONDITIONS.map((c) => ({ value: c, label: c }))}
+          />
+          <FilterSelect
+            label="Location"
+            value={loc}
+            onChange={setLoc}
+            options={LOCATIONS.map((l) => ({ value: l, label: l }))}
+          />
+          <FilterSelect
+            label="Seller Rating"
+            value={minRating}
+            onChange={setMinRating}
+            options={[
+              { value: "4.8", label: "4.8+" },
+              { value: "4.5", label: "4.5+" },
+              { value: "4", label: "4.0+" },
+            ]}
+          />
 
           <div>
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -218,15 +354,22 @@ function Marketplace() {
               onValueChange={([v]) => setMinQty(v ?? 0)}
             />
           </div>
+
+          <div className="space-y-2.5 border-t border-border pt-4">
+            <Toggle label="Verified Business" checked={verifiedOnly} onChange={setVerifiedOnly} />
+            <Toggle label="Available for Pickup" checked={pickupOnly} onChange={setPickupOnly} />
+            <Toggle label="Requires Processing" checked={processing} onChange={setProcessing} />
+          </div>
         </aside>
 
         <div>
           <div className="mb-4 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{listings.length}</span> materials found
+              <span className="font-semibold text-foreground">{listings.length}</span> materials
+              found
             </p>
-            {cat !== "all" && selectedCategoryName && (
-              <Badge variant="soft">{selectedCategoryName}</Badge>
+            {cat !== "all" && (
+              <Badge variant="soft">{CATEGORIES.find((c) => c.id === cat)?.name}</Badge>
             )}
           </div>
 
@@ -238,17 +381,22 @@ function Marketplace() {
             <div className="surface-card p-10 text-center">
               <p className="font-display text-lg font-semibold">No materials match these filters</p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Try widening your filters or search criteria.
+                Try widening your filters, or post a Material Wanted requirement instead.
               </p>
               <Button
                 className="mt-5"
                 onClick={() => {
                   setQ("");
                   setCat("all");
+                  setType("all");
                   setCond("all");
                   setLoc("all");
                   setMaxPrice(50000);
                   setMinQty(0);
+                  setMinRating("all");
+                  setVerifiedOnly(false);
+                  setPickupOnly(false);
+                  setProcessing(false);
                 }}
               >
                 Reset filters
@@ -295,5 +443,22 @@ function FilterSelect({
         </SelectContent>
       </Select>
     </div>
+  );
+}
+
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 text-sm">
+      <Checkbox checked={checked} onCheckedChange={(v) => onChange(Boolean(v))} />
+      {label}
+    </label>
   );
 }

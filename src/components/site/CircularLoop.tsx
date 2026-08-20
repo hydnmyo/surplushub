@@ -4,7 +4,7 @@ const STEPS = [
   { title: "Business has surplus", desc: "Unused stock, offcuts, excess inventory" },
   { title: "List material", desc: "Photos, quantity, condition, price" },
   { title: "Another business discovers it", desc: "Search, filters, category browsing" },
-  { title: "AI matches supply & demand", desc: "EcoMatch AI scores relevance" },
+  { title: "AI matches supply & demand", desc: "Loopi scores relevance" },
   { title: "Connect & negotiate", desc: "Requests, offers, inspection" },
   { title: "Transaction", desc: "Deal created, QR verified" },
   { title: "Material reused / recycled", desc: "Back into production" },

@@ -61,7 +61,7 @@ function Admin() {
             <div key={l.id} className="surface-card flex flex-wrap items-center gap-4 p-4">
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{l.title}</p>
-                <p className="text-xs text-muted-foreground">{l.sellerName} · {l.location}</p>
+                <p className="text-xs text-muted-foreground">{BUSINESSES.find((b) => b.id === l.sellerId)?.name ?? l.sellerId} · {l.location}</p>
               </div>
               <Badge variant="soft">{l.status}</Badge>
               <Button size="sm" variant="outline" onClick={() => toast("Listing removed")}>Remove</Button>
@@ -76,7 +76,7 @@ function Admin() {
                 <p className="font-semibold">{t.material}</p>
                 <p className="text-xs text-muted-foreground">{t.id} · {t.buyer} ↔ {t.seller}</p>
               </div>
-              <span className="text-sm font-semibold">{t.amount}</span>
+              <span className="text-sm font-semibold">{t.value.toLocaleString()} MMK</span>
               <Badge variant={t.status === "Completed" ? "verified" : "soft"}>{t.status}</Badge>
             </div>
           ))}

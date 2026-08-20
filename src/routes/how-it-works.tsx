@@ -29,7 +29,7 @@ function HowItWorks() {
 
       <div className="mt-12 grid gap-5 lg:grid-cols-3">
         {[
-          { title: "For sellers", items: ["Create a company profile and get verified", "Upload surplus with photos, quantity and condition", "Let EcoMatch AI draft the listing and estimate price", "Receive inquiries and offers", "Accept, reject or counter", "Confirm the sale and collect verified reviews"] },
+          { title: "For sellers", items: ["Create a company profile and get verified", "Upload surplus with photos, quantity and condition", "Let Loopi draft the listing and estimate price", "Receive inquiries and offers", "Accept, reject or counter", "Confirm the sale and collect verified reviews"] },
           { title: "For buyers", items: ["Search and filter by category, price, location, condition", "Check verified badges and seller ratings", "Request to Buy with quantity and offered price", "Negotiate or request an inspection", "Complete the deal with a transaction QR", "Leave a verified purchase review"] },
           { title: "For the platform", items: ["Business verification and document review", "Listing moderation and reporting", "Transaction records and status tracking", "Category management", "Analytics and circular-economy metrics"] },
         ].map((c) => (

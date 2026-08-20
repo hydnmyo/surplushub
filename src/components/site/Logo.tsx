@@ -1,17 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Recycle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/surplushub-logo.jpg.asset.json";
 
 export function Logo({ onDark = false, className }: { onDark?: boolean; className?: string }) {
   return (
     <Link to="/" className={cn("group flex items-center gap-2.5", className)}>
-      <span
-        className={cn(
-          "flex size-9 items-center justify-center rounded-xl transition-transform group-hover:scale-105",
-          onDark ? "bg-forest-foreground/15 text-forest-foreground" : "bg-primary text-primary-foreground",
-        )}
-      >
-        <Recycle className="size-5" />
+      <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-white transition-transform group-hover:scale-105">
+        <img src={logoAsset.url} alt="SurplusHub logo" className="size-9 object-contain" />
       </span>
       <span className="leading-tight">
         <span

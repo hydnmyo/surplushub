@@ -18,7 +18,7 @@ export const Route = createFileRoute("/wanted")({
       { title: "Material Wanted — Post What Your Business Needs | SurplusHub" },
       { name: "description", content: "Browse live buyer demand for surplus materials in Myanmar, or post your own requirement and receive supplier offers." },
       { property: "og:title", content: "Material Wanted — SurplusHub" },
-      { property: "og:description", content: "Tell businesses what you're looking for and let EcoMatch AI find matching suppliers." },
+      { property: "og:description", content: "Tell businesses what you're looking for and let Loopi find matching suppliers." },
     ],
   }),
   component: WantedPage,
@@ -64,7 +64,7 @@ function WantedPage() {
               {openId === w.id && (
                 <div className="mt-4 rounded-xl border border-border bg-secondary/60 p-3">
                   <p className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-                    <Sparkles className="size-3.5" /> EcoMatch AI found potential suppliers.
+                    <Sparkles className="size-3.5" /> Loopi found potential suppliers.
                   </p>
                   {matches.map((m, i) => (
                     <div key={m.id} className="mt-2.5 rounded-lg border border-border bg-card p-3">
@@ -147,7 +147,7 @@ function PostRequirementDialog() {
           <Field label="Reference image" type="file" />
         </div>
         <DialogFooter>
-          <Button onClick={() => toast.success("Requirement posted", { description: "EcoMatch AI is searching for matching suppliers." })}>
+          <Button onClick={() => toast.success("Requirement posted", { description: "Loopi is searching for matching suppliers." })}>
             Post Requirement
           </Button>
         </DialogFooter>

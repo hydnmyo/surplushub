@@ -116,8 +116,10 @@
     oklch(0.46 0.11 168) 100%
   );
   --gradient-mint: linear-gradient(140deg, oklch(0.97 0.03 160), oklch(0.95 0.02 85));
-  --shadow-card: 0 1px 2px oklch(0.28 0.065 158 / 0.06), 0 8px 24px -12px oklch(0.28 0.065 158 / 0.18);
-  --shadow-lift: 0 2px 6px oklch(0.28 0.065 158 / 0.08), 0 18px 40px -16px oklch(0.28 0.065 158 / 0.28);
+  --shadow-card:
+    0 1px 2px oklch(0.28 0.065 158 / 0.06), 0 8px 24px -12px oklch(0.28 0.065 158 / 0.18);
+  --shadow-lift:
+    0 2px 6px oklch(0.28 0.065 158 / 0.08), 0 18px 40px -16px oklch(0.28 0.065 158 / 0.28);
 
   --chart-1: oklch(0.45 0.115 157);
   --chart-2: oklch(0.62 0.12 175);
@@ -203,4 +205,25 @@
 
 @utility gradient-mint {
   background-image: var(--gradient-mint);
+}
+
+@keyframes ecomatch-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.ecomatch-robot-button .ecomatch-robot-shell {
+  animation: ecomatch-float 4.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecomatch-robot-button .ecomatch-robot-shell {
+    animation: none;
+  }
 }

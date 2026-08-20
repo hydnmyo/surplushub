@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -45,58 +46,60 @@ function AuthPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: signInEmail,
-      password: signInPassword,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: signInEmail,
+        password: signInPassword,
+      });
 
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return;
+      if (error) throw error;
+
+      signIn(CURRENT_USER);
+      toast.success("Signed in successfully");
+      void navigate({ to: "/dashboard", replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to sign in");
+    } finally {
+      setIsLoading(false);
     }
-
-    signIn(CURRENT_USER);
-    toast.success("Signed in successfully");
-    setLoading(false);
-    void navigate({ to: "/dashboard", replace: true });
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          company_name: companyName,
-          industry,
-          location,
-          contact_person: contactPerson,
-          phone,
-          is_verified: false,
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            company_name: companyName,
+            industry,
+            location,
+            contact_person: contactPerson,
+            phone,
+            is_verified: false,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-      return;
+      if (error) throw error;
+
+      signIn({
+        ...CURRENT_USER,
+        name: contactPerson || CURRENT_USER.name,
+        businessName: companyName || CURRENT_USER.businessName,
+      });
+      toast.success("Business registered. Verification is pending.");
+      void navigate({ to: "/dashboard", replace: true });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to create account");
+    } finally {
+      setIsLoading(false);
     }
-
-    signIn({
-      ...CURRENT_USER,
-      name: contactPerson || CURRENT_USER.name,
-      businessName: companyName || CURRENT_USER.businessName,
-    });
-    toast.success("Business registered. Verification is pending.");
-    setLoading(false);
-    void navigate({ to: "/dashboard", replace: true });
   };
 
   return (
@@ -130,8 +133,8 @@ function AuthPage() {
               value={signInPassword}
               onChange={(e) => setSignInPassword(e.target.value)}
             />
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </TabsContent>
@@ -183,8 +186,8 @@ function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
             <F label="Business registration document" type="file" required={false} />
-            <Button className="w-full" type="submit" disabled={loading}>
-              {loading ? "Creating account..." : "Create Business Account"}
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Create Business Account"}
             </Button>
           </form>
         </TabsContent>
@@ -208,17 +211,32 @@ function F({
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+
   return (
     <div>
       <Label>{label}</Label>
-      <Input
-        className="mt-1.5"
-        placeholder={placeholder ?? ""}
-        type={type ?? "text"}
-        value={value}
-        onChange={onChange}
-        required={required}
-      />
+      <div className={isPassword ? "relative mt-1.5" : "mt-1.5"}>
+        <Input
+          className={isPassword ? "pr-10" : undefined}
+          placeholder={placeholder ?? ""}
+          type={isPassword && showPassword ? "text" : (type ?? "text")}
+          value={value}
+          onChange={onChange}
+          required={required}
+        />
+        {isPassword ? (
+          <button
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            onClick={() => setShowPassword((current) => !current)}
+            type="button"
+          >
+            {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
