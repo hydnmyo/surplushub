@@ -31,30 +31,33 @@ They are shared contracts or generated output. Editing them will conflict with a
 
 `src/routeTree.gen.ts` and `package-lock.json` are **generated output**. "Never touch" means:
 never hand-edit them, and never commit your own regeneration of them. It does **not** mean you are
-stuck when one of them blocks a pull.
+stuck when one of them blocks a pull. Clear it and carry on — do not stop and ask.
 
-This repo was cloned with `src/routeTree.gen.ts` already dirty from line-ending churn, so
-`git pull` will fail on a fresh machine with:
+This repo was cloned before line endings were normalised, so on a fresh Windows machine
+`git pull` fails with:
 
 ```
 error: Your local changes to the following files would be overwritten by merge:
     src/routeTree.gen.ts
 ```
 
-Discard the local churn and pull — discarding generated output is always safe, a build recreates it:
+The file content is usually **identical to HEAD** — this is a stat / line-ending mismatch, not a
+real change. `git restore`, `git checkout --` and `git update-index --really-refresh` do **not**
+reliably clear it. Do not spend time diagnosing it. Run this:
 
 ```bash
-git restore src/routeTree.gen.ts package-lock.json
-git pull origin main
+git fetch origin && git reset --hard origin/main
 ```
 
-If other files still show as modified with no real diff, they are line-ending churn from before the
-repo was normalised. Refresh the whole working tree (safe **only before you have started work**,
-because it discards uncommitted changes):
+Resetting against the remote ref skips the local-change check entirely, so it always works.
+Then stop it recurring:
 
 ```bash
-git rm -r --cached . -q && git reset --hard
+git config core.autocrlf false && git rm -r --cached -q . && git reset --hard
 ```
+
+**Both commands discard uncommitted changes.** That is safe before you start work, which is when
+this problem occurs. If you already have work in progress, commit it to your branch first.
 
 ### Never do these things
 
