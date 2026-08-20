@@ -1,5 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { BadgeCheck, MapPin, Star } from "lucide-react";
+import { useBusinessProfile } from "@/components/business/BusinessProfileProvider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MaterialCard } from "@/components/site/MaterialCard";
@@ -23,19 +24,24 @@ export const Route = createFileRoute("/businesses/$id")({
 });
 
 function BusinessProfile() {
-  const { business: b } = Route.useLoaderData();
+  const { business: loadedBusiness } = Route.useLoaderData();
+  const b = useBusinessProfile(loadedBusiness.id) ?? loadedBusiness;
   const listings = listingsBySeller(b.id);
   const reviews = reviewsFor(b.id);
 
   return (
     <div>
       <div className="relative h-52 overflow-hidden">
-        <img src={heroImg} alt={`${b.name} facility`} width={1600} height={1008} className="size-full object-cover" />
+        <img src={b.bannerUrl || heroImg} alt={`${b.name} facility`} width={1600} height={1008} className="size-full object-cover" />
         <div className="absolute inset-0 gradient-hero opacity-80" />
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="surface-card -mt-16 flex flex-wrap items-center gap-5 p-6">
-          <span className="flex size-20 items-center justify-center rounded-2xl bg-mint font-display text-2xl font-semibold text-accent-foreground">{b.initials}</span>
+        <div className="surface-card relative z-10 -mt-16 flex flex-wrap items-center gap-5 p-6">
+          {b.avatarUrl ? (
+            <img src={b.avatarUrl} alt={`${b.name} logo`} className="size-20 rounded-2xl border border-border bg-background object-cover" />
+          ) : (
+            <span className="flex size-20 items-center justify-center rounded-2xl bg-mint font-display text-2xl font-semibold text-accent-foreground">{b.initials}</span>
+          )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-2xl font-semibold">{b.name}</h1>
@@ -103,6 +109,9 @@ function BusinessProfile() {
                   <li>{b.contact.address}</li>
                   <li>Business hours: {b.hours}</li>
                   <li>{b.website}</li>
+                  {b.socialLinks?.facebook && <li>{b.socialLinks.facebook}</li>}
+                  {b.socialLinks?.linkedin && <li>{b.socialLinks.linkedin}</li>}
+                  {b.socialLinks?.instagram && <li>{b.socialLinks.instagram}</li>}
                 </ul>
               </div>
             </div>

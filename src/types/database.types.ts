@@ -1,46 +1,70 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {
     Tables: {
-      profiles: {
+      businesses: {
         Row: {
           id: string;
-          company_name: string;
-          phone: string | null;
-          location: string | null;
-          is_verified: boolean;
+          user_id: string;
+          name: string;
+          initials: string;
+          industry: string;
+          location: string;
+          verified: boolean;
+          rating: number;
+          transactions: number;
+          since: number;
+          categories: Database["public"]["Enums"]["category_id"][];
+          description: string;
+          contact: Json;
+          hours: string;
+          website: string | null;
+          social_links: Json;
           created_at: string;
-          updated_at: string;
         };
         Insert: {
-          id: string;
-          company_name: string;
-          phone?: string | null;
-          location?: string | null;
-          is_verified?: boolean;
+          id?: string;
+          user_id: string;
+          name: string;
+          initials: string;
+          industry: string;
+          location: string;
+          verified?: boolean;
+          rating?: number;
+          transactions?: number;
+          since: number;
+          categories?: Database["public"]["Enums"]["category_id"][];
+          description: string;
+          contact?: Json;
+          hours: string;
+          website?: string | null;
+          social_links?: Json;
           created_at?: string;
-          updated_at?: string;
         };
         Update: {
           id?: string;
-          company_name?: string;
-          phone?: string | null;
-          location?: string | null;
-          is_verified?: boolean;
+          user_id?: string;
+          name?: string;
+          initials?: string;
+          industry?: string;
+          location?: string;
+          verified?: boolean;
+          rating?: number;
+          transactions?: number;
+          since?: number;
+          categories?: Database["public"]["Enums"]["category_id"][];
+          description?: string;
+          contact?: Json;
+          hours?: string;
+          website?: string | null;
+          social_links?: Json;
           created_at?: string;
-          updated_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
+            foreignKeyName: "businesses_user_id_fkey";
+            columns: ["user_id"];
             isOneToOne: true;
             referencedRelation: "users";
             referencedColumns: ["id"];
@@ -50,171 +74,195 @@ export interface Database {
       listings: {
         Row: {
           id: string;
-          seller_id: string;
           title: string;
-          description: string | null;
-          category: string;
-          condition: string;
-          price_mmk: number | null;
+          category: Database["public"]["Enums"]["category_id"];
+          material_type: Database["public"]["Enums"]["material_type"];
+          condition: Database["public"]["Enums"]["condition_type"];
+          composition: string;
+          quantity: number;
           unit: string;
-          quantity_available: number;
-          location: string | null;
-          images: string[];
-          status: string;
+          price: number | null;
+          price_unit: string;
+          min_order: string;
+          location: string;
+          available_from: string;
+          seller_id: string;
+          requires_processing: boolean;
+          pickup_available: boolean;
+          featured: boolean;
+          views: number;
+          inquiries: number;
+          popularity: number;
+          status: Database["public"]["Enums"]["listing_status"];
+          description: string;
+          uses: string[];
           created_at: string;
-          updated_at: string;
         };
         Insert: {
           id?: string;
-          seller_id: string;
           title: string;
-          description?: string | null;
-          category: string;
-          condition: string;
-          price_mmk?: number | null;
+          category: Database["public"]["Enums"]["category_id"];
+          material_type: Database["public"]["Enums"]["material_type"];
+          condition: Database["public"]["Enums"]["condition_type"];
+          composition: string;
+          quantity: number;
           unit: string;
-          quantity_available: number;
-          location?: string | null;
-          images?: string[];
-          status?: string;
+          price?: number | null;
+          price_unit: string;
+          min_order: string;
+          location: string;
+          available_from: string;
+          seller_id: string;
+          requires_processing?: boolean;
+          pickup_available?: boolean;
+          featured?: boolean;
+          views?: number;
+          inquiries?: number;
+          popularity?: number;
+          status?: Database["public"]["Enums"]["listing_status"];
+          description: string;
+          uses?: string[];
           created_at?: string;
-          updated_at?: string;
         };
         Update: {
           id?: string;
-          seller_id?: string;
           title?: string;
-          description?: string | null;
-          category?: string;
-          condition?: string;
-          price_mmk?: number | null;
+          category?: Database["public"]["Enums"]["category_id"];
+          material_type?: Database["public"]["Enums"]["material_type"];
+          condition?: Database["public"]["Enums"]["condition_type"];
+          composition?: string;
+          quantity?: number;
           unit?: string;
-          quantity_available?: number;
-          location?: string | null;
-          images?: string[];
-          status?: string;
+          price?: number | null;
+          price_unit?: string;
+          min_order?: string;
+          location?: string;
+          available_from?: string;
+          seller_id?: string;
+          requires_processing?: boolean;
+          pickup_available?: boolean;
+          featured?: boolean;
+          views?: number;
+          inquiries?: number;
+          popularity?: number;
+          status?: Database["public"]["Enums"]["listing_status"];
+          description?: string;
+          uses?: string[];
           created_at?: string;
-          updated_at?: string;
         };
         Relationships: [
           {
             foreignKeyName: "listings_seller_id_fkey";
             columns: ["seller_id"];
             isOneToOne: false;
-            referencedRelation: "profiles";
+            referencedRelation: "businesses";
             referencedColumns: ["id"];
           },
         ];
       };
-      wanted_requests: {
+      wanted_posts: {
         Row: {
           id: string;
-          buyer_id: string;
           title: string;
-          category: string;
-          quantity_needed: number;
-          target_price_mmk: number | null;
-          location: string | null;
+          category: Database["public"]["Enums"]["category_id"];
+          quantity: string;
+          budget: string;
+          budget_value: number;
+          location: string;
+          use: string;
+          condition: string;
+          required_by: string;
+          buyer_name: string;
+          offers_count: number;
+          notes: string;
           created_at: string;
-          updated_at: string;
         };
         Insert: {
           id?: string;
-          buyer_id: string;
           title: string;
-          category: string;
-          quantity_needed: number;
-          target_price_mmk?: number | null;
-          location?: string | null;
+          category: Database["public"]["Enums"]["category_id"];
+          quantity: string;
+          budget: string;
+          budget_value: number;
+          location: string;
+          use: string;
+          condition: string;
+          required_by: string;
+          buyer_name: string;
+          offers_count?: number;
+          notes: string;
           created_at?: string;
-          updated_at?: string;
         };
         Update: {
           id?: string;
-          buyer_id?: string;
           title?: string;
-          category?: string;
-          quantity_needed?: number;
-          target_price_mmk?: number | null;
-          location?: string | null;
+          category?: Database["public"]["Enums"]["category_id"];
+          quantity?: string;
+          budget?: string;
+          budget_value?: number;
+          location?: string;
+          use?: string;
+          condition?: string;
+          required_by?: string;
+          buyer_name?: string;
+          offers_count?: number;
+          notes?: string;
           created_at?: string;
-          updated_at?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "wanted_requests_buyer_id_fkey";
-            columns: ["buyer_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      deals: {
-        Row: {
-          id: string;
-          listing_id: string;
-          buyer_id: string;
-          seller_id: string;
-          quantity: number;
-          total_price_mmk: number | null;
-          status: string;
-          qr_code_hash: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          listing_id: string;
-          buyer_id: string;
-          seller_id: string;
-          quantity: number;
-          total_price_mmk?: number | null;
-          status?: string;
-          qr_code_hash?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          listing_id?: string;
-          buyer_id?: string;
-          seller_id?: string;
-          quantity?: number;
-          total_price_mmk?: number | null;
-          status?: string;
-          qr_code_hash?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "deals_buyer_id_fkey";
-            columns: ["buyer_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "deals_listing_id_fkey";
-            columns: ["listing_id"];
-            isOneToOne: false;
-            referencedRelation: "listings";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "deals_seller_id_fkey";
-            columns: ["seller_id"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
+    Functions: {
+      increment_listing_views: {
+        Args: { listing_id: string };
+        Returns: undefined;
+      };
+    };
+    Enums: {
+      category_id:
+        | "textile"
+        | "plastic"
+        | "paper"
+        | "metal"
+        | "wood"
+        | "glass"
+        | "rubber"
+        | "construction"
+        | "industrial"
+        | "other";
+      material_type:
+        | "Reusable Surplus"
+        | "Production Surplus"
+        | "Offcut"
+        | "Excess Inventory"
+        | "Recyclable Material"
+        | "Scrap Material"
+        | "Packaging Surplus"
+        | "Unused Stock";
+      condition_type:
+        | "New / Unused"
+        | "Like New"
+        | "Good"
+        | "Minor Defect"
+        | "Used"
+        | "Scrap / Requires Processing";
+      listing_status: "Active" | "Reserved" | "Sold Out" | "Hidden";
+    };
     CompositeTypes: Record<string, never>;
   };
 }
+
+export type Tables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
+
+export type Inserts<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"];
+
+export type Updates<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
+
+export type CategoryId = Database["public"]["Enums"]["category_id"];
+export type MaterialType = Database["public"]["Enums"]["material_type"];
+export type ConditionType = Database["public"]["Enums"]["condition_type"];
+export type ListingStatus = Database["public"]["Enums"]["listing_status"];

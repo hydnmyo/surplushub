@@ -25,7 +25,6 @@ export function Footer() {
           title="Platform"
           links={[
             { to: "/how-it-works", label: "How It Works" },
-            { to: "/impact", label: "Circular Impact" },
             { to: "/trust", label: "Trust & Safety" },
             { to: "/about", label: "About & Business Model" },
           ]}
@@ -41,7 +40,7 @@ export function Footer() {
       </div>
       <div className="border-t border-forest-foreground/15">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-forest-foreground/60 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>© 2026 SurplusHub Myanmar. Prototype — demo data for demonstration purposes.</p>
+          <p>© 2026 SurplusHub Myanmar.</p>
           <p>Yangon · Mandalay · Bago</p>
         </div>
       </div>

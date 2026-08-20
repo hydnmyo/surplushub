@@ -3,7 +3,7 @@ import plasticImg from "@/assets/cat-plastic.jpg";
 import paperImg from "@/assets/cat-paper.jpg";
 import metalImg from "@/assets/cat-metal.jpg";
 import woodImg from "@/assets/cat-wood.jpg";
-import glassImg from "@/assets/cat-glass.jpg";
+import glassImg from "@/assets/cat-glass-recycled.png";
 import rubberImg from "@/assets/cat-rubber.jpg";
 import constructionImg from "@/assets/cat-construction.jpg";
 import industrialImg from "@/assets/cat-industrial.jpg";
@@ -24,11 +24,9 @@ export type CategoryId =
 export interface Category {
   id: CategoryId;
   name: string;
-  icon: string;
   blurb: string;
   image: string;
   active: boolean;
-  listings: number;
   tons: number;
 }
 
@@ -36,101 +34,81 @@ export const CATEGORIES: Category[] = [
   {
     id: "textile",
     name: "Textile & Fabric",
-    icon: "♻️",
     blurb: "Fabric, denim, yarn, leather, thread, zippers, buttons",
     image: textileImg,
     active: true,
-    listings: 412,
     tons: 4.2,
   },
   {
     id: "plastic",
     name: "Plastic",
-    icon: "🧴",
     blurb: "Bottles, containers, packaging, plastic sheets, scraps",
     image: plasticImg,
     active: true,
-    listings: 386,
     tons: 3.1,
   },
   {
     id: "paper",
     name: "Paper & Cardboard",
-    icon: "📦",
     blurb: "Boxes, paper rolls, sheets, packaging, paper scraps",
     image: paperImg,
     active: true,
-    listings: 344,
     tons: 2.3,
   },
   {
     id: "metal",
     name: "Metal",
-    icon: "🔩",
     blurb: "Aluminum, steel, metal sheets, wires, metal offcuts",
     image: metalImg,
     active: true,
-    listings: 297,
     tons: 1.8,
   },
   {
     id: "wood",
     name: "Wood",
-    icon: "🪵",
     blurb: "Timber, plywood, pallets, crates, wood offcuts",
     image: woodImg,
     active: true,
-    listings: 233,
     tons: 0.7,
   },
   {
     id: "glass",
     name: "Glass",
-    icon: "🫙",
     blurb: "Bottles, jars, containers, glass sheets",
     image: glassImg,
     active: true,
-    listings: 152,
     tons: 0.2,
   },
   {
     id: "rubber",
     name: "Rubber",
-    icon: "🛞",
     blurb: "Rubber sheets, scraps, offcuts",
     image: rubberImg,
     active: true,
-    listings: 98,
     tons: 0.1,
   },
   {
     id: "construction",
     name: "Construction",
-    icon: "🧱",
     blurb: "Tiles, pipes, plywood, building-material surplus",
     image: constructionImg,
     active: true,
-    listings: 176,
     tons: 1.1,
   },
   {
     id: "industrial",
     name: "Industrial Components",
-    icon: "⚙️",
     blurb: "Fasteners, containers, accessories, production components",
     image: industrialImg,
     active: true,
-    listings: 141,
     tons: 0.6,
   },
   {
     id: "other",
     name: "Other",
-    icon: "📦",
     blurb: "Other legitimate surplus or recyclable business materials",
     image: otherImg,
     active: true,
-    listings: 91,
     tons: 0.3,
   },
 ];
@@ -173,6 +151,7 @@ export const LOCATIONS = [
 
 export interface Business {
   id: string;
+  userId?: string;
   name: string;
   initials: string;
   industry: string;
@@ -186,12 +165,20 @@ export interface Business {
   contact: { person: string; phone: string; email: string; address: string };
   hours: string;
   website: string;
+  avatarUrl?: string;
+  bannerUrl?: string;
+  socialLinks?: {
+    facebook: string;
+    linkedin: string;
+    instagram: string;
+  };
 }
 
 export const BUSINESSES: Business[] = [
   {
     id: "green-stitch",
-    name: "Green Stitch Textile",
+    userId: "user-green-stitch",
+    name: "Green Stitch Textile Co.",
     initials: "GS",
     industry: "Garment Manufacturing",
     location: "Yangon",
@@ -1063,6 +1050,8 @@ export const LISTINGS: Listing[] = [
 export const listingById = (id: string) => LISTINGS.find((l) => l.id === id);
 export const listingsBySeller = (sellerId: string) =>
   LISTINGS.filter((l) => l.sellerId === sellerId);
+export const listingCountByCategory = (categoryId: CategoryId) =>
+  LISTINGS.filter((listing) => listing.category === categoryId).length;
 
 export interface WantedPost {
   id: string;
@@ -1128,389 +1117,8 @@ export const WANTED: WantedPost[] = [
     buyer: "Teak & Twine Studio",
     postedDaysAgo: 3,
     offers: 3,
-    notes: "Hardwood preferred, minimum 30cm usable length.",
-  },
-  {
-    id: "w-plastic-200",
-    title: "WANTED: Plastic Scrap",
-    category: "plastic",
-    quantity: "200 kg",
-    budget: "150,000 MMK",
-    budgetValue: 150000,
-    location: "Yangon",
-    use: "Injection moulding inputs",
-    condition: "Scrap / Requires Processing",
-    requiredBy: "5 Sep 2026",
-    buyer: "Mingalar Plastics Works",
-    postedDaysAgo: 1,
-    offers: 2,
-    notes: "HDPE or PP regrind acceptable. Sample required before purchase.",
-  },
-  {
-    id: "w-cotton-60",
-    title: "WANTED: Cotton Fabric Surplus",
-    category: "textile",
-    quantity: "60 kg",
-    budget: "Up to 300,000 MMK",
-    budgetValue: 300000,
-    location: "Yangon",
-    use: "Tote bag production",
-    condition: "New / Unused",
-    requiredBy: "1 Sep 2026",
-    buyer: "Yangon Craft Collective",
-    postedDaysAgo: 4,
-    offers: 5,
-    notes: "Natural or undyed shades preferred.",
-  },
-  {
-    id: "w-pallets-80",
-    title: "WANTED: Wooden Pallets",
-    category: "wood",
-    quantity: "80 pallets",
-    budget: "4,000 MMK/unit",
-    budgetValue: 320000,
-    location: "Bago",
-    use: "Warehouse handling",
-    condition: "Used",
-    requiredBy: "10 Sep 2026",
-    buyer: "Bago Agro Logistics",
-    postedDaysAgo: 6,
-    offers: 2,
-    notes: "Four-way entry pallets only.",
-  },
-  {
-    id: "w-aluminium-300",
-    title: "WANTED: Aluminium Scrap",
-    category: "metal",
-    quantity: "300 kg",
-    budget: "Up to 1,100,000 MMK",
-    budgetValue: 1100000,
-    location: "Yangon",
-    use: "Casting and smelting",
-    condition: "Scrap / Requires Processing",
-    requiredBy: "18 Sep 2026",
-    buyer: "Ayeyar Foundry",
-    postedDaysAgo: 5,
-    offers: 3,
-    notes: "Clean extrusion scrap only, no mixed metals.",
-  },
-  {
-    id: "w-glass-1500",
-    title: "WANTED: Glass Bottles",
-    category: "glass",
-    quantity: "1,500 pieces",
-    budget: "300 MMK/unit",
-    budgetValue: 450000,
-    location: "Yangon",
-    use: "Kombucha bottling",
-    condition: "Like New",
-    requiredBy: "12 Sep 2026",
-    buyer: "Golden Ferment Co.",
-    postedDaysAgo: 7,
-    offers: 1,
-    notes: "330ml clear bottles, washed and crated.",
+    notes: "Preferably hardwood offcuts suitable for small home decor items. Pickup available.",
   },
 ];
 
 export const wantedById = (id: string) => WANTED.find((w) => w.id === id);
-
-export type TxStatus =
-  | "Request Sent"
-  | "Seller Responded"
-  | "Inspection / Negotiation"
-  | "Deal Created"
-  | "Transaction QR Generated"
-  | "Pickup / Delivery"
-  | "Seller Confirms Sale"
-  | "Completed";
-
-export const TX_FLOW: TxStatus[] = [
-  "Request Sent",
-  "Seller Responded",
-  "Inspection / Negotiation",
-  "Deal Created",
-  "Transaction QR Generated",
-  "Pickup / Delivery",
-  "Seller Confirms Sale",
-  "Completed",
-];
-
-export interface Transaction {
-  id: string;
-  buyer: string;
-  seller: string;
-  sellerId: string;
-  material: string;
-  category: CategoryId;
-  quantity: string;
-  value: number;
-  status: TxStatus;
-  date: string;
-  verified: boolean;
-}
-
-export const TRANSACTIONS: Transaction[] = [
-  {
-    id: "TXN-20481",
-    buyer: "EcoBag Myanmar",
-    seller: "Yangon Circular Plastics",
-    sellerId: "yangon-circular-plastics",
-    material: "PET Plastic Scrap",
-    category: "plastic",
-    quantity: "500 kg",
-    value: 300000,
-    status: "Transaction QR Generated",
-    date: "14 Aug 2026",
-    verified: false,
-  },
-  {
-    id: "TXN-20476",
-    buyer: "Shwe Online Retail",
-    seller: "EcoBox Myanmar",
-    sellerId: "ecobox-myanmar",
-    material: "Corrugated Cardboard Boxes",
-    category: "paper",
-    quantity: "800 boxes",
-    value: 240000,
-    status: "Completed",
-    date: "11 Aug 2026",
-    verified: true,
-  },
-  {
-    id: "TXN-20470",
-    buyer: "Teak & Twine Studio",
-    seller: "GreenWood Manufacturing",
-    sellerId: "greenwood-manufacturing",
-    material: "Wood Offcuts",
-    category: "wood",
-    quantity: "120 kg",
-    value: 156000,
-    status: "Completed",
-    date: "9 Aug 2026",
-    verified: true,
-  },
-  {
-    id: "TXN-20465",
-    buyer: "Ayeyar Foundry",
-    seller: "Myanmar Metal Recovery",
-    sellerId: "myanmar-metal-recovery",
-    material: "Aluminum Offcuts",
-    category: "metal",
-    quantity: "250 kg",
-    value: 950000,
-    status: "Pickup / Delivery",
-    date: "13 Aug 2026",
-    verified: false,
-  },
-  {
-    id: "TXN-20458",
-    buyer: "Yangon Craft Collective",
-    seller: "Green Stitch Textile",
-    sellerId: "green-stitch",
-    material: "Cotton Fabric Surplus",
-    category: "textile",
-    quantity: "60 kg",
-    value: 270000,
-    status: "Completed",
-    date: "6 Aug 2026",
-    verified: true,
-  },
-  {
-    id: "TXN-20450",
-    buyer: "Golden Ferment Co.",
-    seller: "Yangon Glass Supply",
-    sellerId: "yangon-glass-supply",
-    material: "Glass Bottles",
-    category: "glass",
-    quantity: "1,000 pieces",
-    value: 350000,
-    status: "Inspection / Negotiation",
-    date: "12 Aug 2026",
-    verified: false,
-  },
-  {
-    id: "TXN-20441",
-    buyer: "Mingalar Plastics Works",
-    seller: "Yangon Circular Plastics",
-    sellerId: "yangon-circular-plastics",
-    material: "Plastic Packaging Surplus",
-    category: "plastic",
-    quantity: "90 kg",
-    value: 198000,
-    status: "Completed",
-    date: "2 Aug 2026",
-    verified: true,
-  },
-  {
-    id: "TXN-20433",
-    buyer: "Shwe Interiors",
-    seller: "CircularBuild Myanmar",
-    sellerId: "circularbuild-myanmar",
-    material: "Excess Ceramic Tiles",
-    category: "construction",
-    quantity: "40 boxes",
-    value: 1000000,
-    status: "Completed",
-    date: "29 Jul 2026",
-    verified: true,
-  },
-];
-
-export interface Review {
-  id: string;
-  businessId: string;
-  buyer: string;
-  rating: number;
-  accuracy: number;
-  quality: number;
-  communication: number;
-  reliability: number;
-  text: string;
-  date: string;
-  material: string;
-}
-
-export const REVIEWS: Review[] = [
-  {
-    id: "r1",
-    businessId: "yangon-circular-plastics",
-    buyer: "EcoBag Myanmar",
-    rating: 5,
-    accuracy: 5,
-    quality: 5,
-    communication: 5,
-    reliability: 4,
-    text: "Bales matched the listing weight exactly and loading was ready when we arrived. Third purchase from them.",
-    date: "2 Aug 2026",
-    material: "PET Plastic Scrap",
-  },
-  {
-    id: "r2",
-    businessId: "ecobox-myanmar",
-    buyer: "Shwe Online Retail",
-    rating: 5,
-    accuracy: 5,
-    quality: 4,
-    communication: 5,
-    reliability: 5,
-    text: "Boxes were flat-packed and dry as described. Clear communication on collection time.",
-    date: "11 Aug 2026",
-    material: "Corrugated Cardboard Boxes",
-  },
-  {
-    id: "r3",
-    businessId: "green-stitch",
-    buyer: "Yangon Craft Collective",
-    rating: 5,
-    accuracy: 5,
-    quality: 5,
-    communication: 4,
-    reliability: 5,
-    text: "Fabric quality was better than expected for surplus stock. Will buy again next season.",
-    date: "6 Aug 2026",
-    material: "Cotton Fabric Surplus",
-  },
-  {
-    id: "r4",
-    businessId: "greenwood-manufacturing",
-    buyer: "Teak & Twine Studio",
-    rating: 4,
-    accuracy: 4,
-    quality: 5,
-    communication: 4,
-    reliability: 4,
-    text: "Good mix of usable lengths. A few pieces shorter than expected but overall strong value.",
-    date: "9 Aug 2026",
-    material: "Wood Offcuts",
-  },
-  {
-    id: "r5",
-    businessId: "myanmar-metal-recovery",
-    buyer: "Ayeyar Foundry",
-    rating: 5,
-    accuracy: 5,
-    quality: 5,
-    communication: 4,
-    reliability: 5,
-    text: "Clean scrap, weighed in front of us on a certified scale. Very professional.",
-    date: "28 Jul 2026",
-    material: "Aluminum Offcuts",
-  },
-  {
-    id: "r6",
-    businessId: "circularbuild-myanmar",
-    buyer: "Shwe Interiors",
-    rating: 5,
-    accuracy: 5,
-    quality: 5,
-    communication: 5,
-    reliability: 5,
-    text: "Same batch number across all boxes, exactly as listed. Saved our renovation budget.",
-    date: "29 Jul 2026",
-    material: "Excess Ceramic Tiles",
-  },
-];
-
-export const reviewsFor = (businessId: string) =>
-  REVIEWS.filter((r) => r.businessId === businessId);
-
-export const PLATFORM_STATS = {
-  businesses: 248,
-  buyers: 1245,
-  activeListings: 2830,
-  completedTransactions: 684,
-  transactionValue: "85.6M MMK",
-  platformRevenue: "1.7M MMK",
-  materialsExchanged: "12.4 Tons",
-};
-
-export const MONTHLY_VALUE = [
-  { month: "Feb", value: 6.2, transactions: 41 },
-  { month: "Mar", value: 7.8, transactions: 55 },
-  { month: "Apr", value: 9.1, transactions: 63 },
-  { month: "May", value: 11.4, transactions: 79 },
-  { month: "Jun", value: 13.2, transactions: 94 },
-  { month: "Jul", value: 16.7, transactions: 118 },
-  { month: "Aug", value: 21.2, transactions: 134 },
-];
-
-export const CATEGORY_SALES = [
-  { category: "Textile", tons: 4.2, value: 18.4 },
-  { category: "Plastic", tons: 3.1, value: 21.6 },
-  { category: "Paper", tons: 2.3, value: 12.1 },
-  { category: "Metal", tons: 1.8, value: 19.8 },
-  { category: "Wood", tons: 0.7, value: 5.4 },
-  { category: "Glass", tons: 0.2, value: 3.6 },
-  { category: "Rubber", tons: 0.1, value: 1.4 },
-  { category: "Construction", tons: 1.1, value: 3.3 },
-];
-
-export const SELLER_STATS = {
-  totalSales: "5,600,000 MMK",
-  completed: 31,
-  activeListings: 47,
-  offersReceived: 23,
-  rating: 4.8,
-  inventoryValue: "8,500,000 MMK",
-};
-
-export const SELLER_NOTIFICATIONS = [
-  { title: "New buyer inquiry", body: "EcoBag Myanmar asked about PET Plastic Scrap", time: "8m ago", type: "inquiry" },
-  { title: "New wanted request matches your stock", body: "WANTED: 200kg Plastic Scrap — Yangon", time: "42m ago", type: "match" },
-  { title: "Buyer accepted your offer", body: "Mingalar Plastics Works accepted 198,000 MMK", time: "3h ago", type: "offer" },
-  { title: "Transaction completed", body: "TXN-20441 confirmed and verified", time: "1d ago", type: "transaction" },
-  { title: "Listing expiring soon", body: "HDPE Plastic Sheets expires in 3 days", time: "1d ago", type: "listing" },
-  { title: "Low inventory", body: "Plastic Packaging Surplus below 20kg", time: "2d ago", type: "inventory" },
-];
-
-export const BUYER_NOTIFICATIONS = [
-  { title: "New seller response", body: "Yangon Circular Plastics responded to your request", time: "12m ago", type: "response" },
-  { title: "AI match found", body: "EcoMatch AI found 3 suppliers for your cardboard request", time: "1h ago", type: "match" },
-  { title: "Deal confirmed", body: "TXN-20481 deal created — QR ready", time: "5h ago", type: "deal" },
-  { title: "Review available", body: "Leave a verified review for TXN-20476", time: "2d ago", type: "review" },
-];
-
-export const formatMMK = (n: number) => `${n.toLocaleString("en-US")} MMK`;
-
-export const priceLabel = (l: Listing) =>
-  l.price === null ? "Negotiable" : `${l.price.toLocaleString("en-US")} MMK/${l.priceUnit}`;
