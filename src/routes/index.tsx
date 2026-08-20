@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Sell surplus materials, discover affordable production inputs, and match supply with demand using EcoMatch AI.",
+          "Sell surplus materials, discover affordable production inputs, and match supply with demand using Loopi.",
       },
     ],
   }),
@@ -89,7 +89,7 @@ function Index() {
             {
               icon: Sparkles,
               title: "We connect them",
-              body: "EcoMatch AI matches supply with demand, then the platform tracks and verifies the deal.",
+              body: "Loopi matches supply with demand, then the platform tracks and verifies the deal.",
             },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="surface-card p-6">
@@ -183,13 +183,13 @@ function Index() {
 
         <div className="surface-card gradient-mint p-7">
           <Badge variant="verified" className="gap-1">
-            <Sparkles className="size-3" /> EcoMatch AI
+            <Sparkles className="size-3" /> Loopi
           </Badge>
           <h2 className="mt-4 font-display text-2xl font-semibold">
             AI-powered material discovery and supply–demand matching.
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            EcoMatch AI is more than a chatbot — it reads live marketplace data to recommend materials,
+            Loopi is more than a chatbot — it reads live marketplace data to recommend materials,
             find buyers for your surplus, estimate prices and draft listings.
           </p>
           <div className="mt-5 space-y-2.5">
@@ -204,7 +204,7 @@ function Index() {
             ))}
           </div>
           <p className="mt-5 text-xs text-muted-foreground">
-            Open EcoMatch AI from the button in the bottom-right corner of any page.
+            Open Loopi from the button in the bottom-right corner of any page.
           </p>
         </div>
       </section>

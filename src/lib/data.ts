@@ -1494,7 +1494,7 @@ export const SELLER_NOTIFICATIONS = [
 
 export const BUYER_NOTIFICATIONS = [
   { title: "New seller response", body: "Yangon Circular Plastics responded to your request", time: "12m ago", type: "response" },
-  { title: "AI match found", body: "EcoMatch AI found 3 suppliers for your cardboard request", time: "1h ago", type: "match" },
+  { title: "AI match found", body: "Loopi found 3 suppliers for your cardboard request", time: "1h ago", type: "match" },
   { title: "Deal confirmed", body: "TXN-20481 deal created — QR ready", time: "5h ago", type: "deal" },
   { title: "Review available", body: "Leave a verified review for TXN-20476", time: "2d ago", type: "review" },
 ];

@@ -1,4 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,10 +68,29 @@ function AuthPage() {
 }
 
 function F({ label, placeholder, type }: { label: string; placeholder?: string; type?: string }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+
   return (
     <div>
       <Label>{label}</Label>
-      <Input className="mt-1.5" placeholder={placeholder ?? ""} type={type ?? "text"} />
+      <div className={isPassword ? "relative mt-1.5" : "mt-1.5"}>
+        <Input
+          className={isPassword ? "pr-10" : undefined}
+          placeholder={placeholder ?? ""}
+          type={isPassword && showPassword ? "text" : (type ?? "text")}
+        />
+        {isPassword ? (
+          <button
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            onClick={() => setShowPassword((current) => !current)}
+            type="button"
+          >
+            {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

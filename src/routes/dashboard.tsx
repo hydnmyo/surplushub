@@ -281,7 +281,7 @@ function PostListing() {
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Post surplus material</DialogTitle>
-          <DialogDescription>EcoMatch AI will suggest a fair price range once your details are added.</DialogDescription>
+          <DialogDescription>Loopi will suggest a fair price range once your details are added.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <FF label="Material title" placeholder="Cotton fabric offcuts — 200kg" />
@@ -303,7 +303,7 @@ function PostListing() {
           <FF label="Photos" type="file" />
         </div>
         <DialogFooter>
-          <Button onClick={() => toast.success("Listing published", { description: "EcoMatch AI notified 4 matching buyers." })}>Publish Listing</Button>
+          <Button onClick={() => toast.success("Listing published", { description: "Loopi notified 4 matching buyers." })}>Publish Listing</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

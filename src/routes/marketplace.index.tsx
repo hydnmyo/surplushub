@@ -19,11 +19,11 @@ import {
   BUSINESSES,
   CATEGORIES,
   CONDITIONS,
-  LISTINGS,
   LOCATIONS,
   MATERIAL_TYPES,
   type CategoryId,
 } from "@/lib/data";
+import { MARKETPLACE_LISTINGS } from "@/lib/marketplace-data";
 
 export const Route = createFileRoute("/marketplace/")({
   validateSearch: (s: Record<string, unknown>): { category?: CategoryId } =>
@@ -39,7 +39,8 @@ export const Route = createFileRoute("/marketplace/")({
       { property: "og:title", content: "SurplusHub Marketplace" },
       {
         property: "og:description",
-        content: "Search textile, plastic, paper, metal, wood, glass, rubber and construction surplus.",
+        content:
+          "Search textile, plastic, paper, metal, wood, glass, rubber and construction surplus.",
       },
     ],
   }),
@@ -71,7 +72,7 @@ function Marketplace() {
   const [processing, setProcessing] = useState(false);
 
   const results = useMemo(() => {
-    const out = LISTINGS.filter((l) => {
+    const out = MARKETPLACE_LISTINGS.filter((l) => {
       const seller = BUSINESSES.find((b) => b.id === l.sellerId);
       const text = `${l.title} ${l.composition} ${seller?.name ?? ""}`.toLowerCase();
       if (q && !text.includes(q.toLowerCase())) return false;
@@ -105,7 +106,20 @@ function Marketplace() {
           (a, b) => Number(!!b.featured) - Number(!!a.featured) || b.popularity - a.popularity,
         );
     }
-  }, [q, cat, type, cond, loc, sort, maxPrice, minQty, minRating, verifiedOnly, pickupOnly, processing]);
+  }, [
+    q,
+    cat,
+    type,
+    cond,
+    loc,
+    sort,
+    maxPrice,
+    minQty,
+    minRating,
+    verifiedOnly,
+    pickupOnly,
+    processing,
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -144,10 +158,30 @@ function Marketplace() {
             <SlidersHorizontal className="size-4" /> Filters
           </p>
 
-          <FilterSelect label="Category" value={cat} onChange={setCat} options={CATEGORIES.map((c) => ({ value: c.id, label: c.name }))} />
-          <FilterSelect label="Material Type" value={type} onChange={setType} options={MATERIAL_TYPES.map((t) => ({ value: t, label: t }))} />
-          <FilterSelect label="Condition" value={cond} onChange={setCond} options={CONDITIONS.map((c) => ({ value: c, label: c }))} />
-          <FilterSelect label="Location" value={loc} onChange={setLoc} options={LOCATIONS.map((l) => ({ value: l, label: l }))} />
+          <FilterSelect
+            label="Category"
+            value={cat}
+            onChange={setCat}
+            options={CATEGORIES.map((c) => ({ value: c.id, label: c.name }))}
+          />
+          <FilterSelect
+            label="Material Type"
+            value={type}
+            onChange={setType}
+            options={MATERIAL_TYPES.map((t) => ({ value: t, label: t }))}
+          />
+          <FilterSelect
+            label="Condition"
+            value={cond}
+            onChange={setCond}
+            options={CONDITIONS.map((c) => ({ value: c, label: c }))}
+          />
+          <FilterSelect
+            label="Location"
+            value={loc}
+            onChange={setLoc}
+            options={LOCATIONS.map((l) => ({ value: l, label: l }))}
+          />
           <FilterSelect
             label="Seller Rating"
             value={minRating}
@@ -196,9 +230,12 @@ function Marketplace() {
         <div>
           <div className="mb-4 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{results.length}</span> materials found
+              <span className="font-semibold text-foreground">{results.length}</span> materials
+              found
             </p>
-            {cat !== "all" && <Badge variant="soft">{CATEGORIES.find((c) => c.id === cat)?.name}</Badge>}
+            {cat !== "all" && (
+              <Badge variant="soft">{CATEGORIES.find((c) => c.id === cat)?.name}</Badge>
+            )}
           </div>
           {results.length === 0 ? (
             <div className="surface-card p-10 text-center">

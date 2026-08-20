@@ -362,7 +362,7 @@ Confirm completed transactions
 
 Review businesses after successful transactions
 
-Use EcoMatch AI
+Use Loopi
 
 BUSINESS / SELLER
 
@@ -440,7 +440,7 @@ Dashboard
 
 Always show the floating:
 
-EcoMatch AI
+Loopi
 
 button.
 
@@ -1162,7 +1162,7 @@ When a buyer creates a request:
 
 Show:
 
-EcoMatch AI found potential suppliers.
+Loopi found potential suppliers.
 
 Example:
 
@@ -1238,7 +1238,7 @@ The floating assistant should be specialized.
 
 Name:
 
-EcoMatch AI
+Loopi
 
 Primary purpose:
 
@@ -1310,7 +1310,7 @@ User:
 
 AI:
 
-EcoMatch AI found 5 potentially relevant buyer requests.
+Loopi found 5 potentially relevant buyer requests.
 
 Show:
 
@@ -2038,7 +2038,7 @@ New transaction is created.
 
 AI
 
-Buyer asks EcoMatch AI:
+Buyer asks Loopi:
 “I need recyclable packaging material under 200,000 MMK.”
 
 AI recommends real marketplace listings.
