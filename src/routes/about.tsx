@@ -101,6 +101,85 @@ function About() {
             ))}
           </div>
         </article>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          <article className="surface-card p-6">
+            <h3 className="font-display text-lg font-semibold">
+              No subscription at launch — on purpose
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              A marketplace has a cold-start problem: without sellers there are no buyers, and
+              without buyers there are no sellers. Charging a monthly fee before a business has seen
+              any value is the fastest way to have neither.
+            </p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              So at launch we charge only when a deal actually completes. If the platform does not
+              create value, we do not get paid — our incentives and our users' point the same way.
+              Subscriptions and premium tiers come once there is enough liquidity to be worth paying
+              for.
+            </p>
+          </article>
+
+          <article className="surface-card p-6">
+            <h3 className="font-display text-lg font-semibold">What the fee pays for</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Buyers could always contact a seller directly. What they cannot get that way:
+            </p>
+            <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+              {[
+                "Verified businesses, not anonymous sellers",
+                "Material specifications and photos on record",
+                "Secure MMQR payment instead of transferring first and hoping",
+                "Order tracking through preparation and delivery",
+                "A 48-hour inspection window before the seller is paid",
+                "Dispute support when the material is not what was described",
+                "A verified transaction history that builds credibility",
+              ].map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span aria-hidden="true" className="text-primary">
+                    ·
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="phase-two-heading" className="mt-12">
+        <h2 id="phase-two-heading" className="font-display text-2xl font-semibold">
+          Phase 2
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+          Additional revenue we can introduce once the marketplace has enough transaction volume to
+          support it. None of it is part of the launch model.
+        </p>
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              title: "Featured listings",
+              body: "Paid promotion for greater visibility on selected material listings.",
+            },
+            {
+              title: "Business subscription",
+              body: "Premium plans adding advanced analytics, AI tools and more listing capacity.",
+            },
+            {
+              title: "Logistics partnerships",
+              body: "Commission from delivery partners once volume supports negotiated rates.",
+            },
+            {
+              title: "Integrated escrow",
+              body: "A licensed settlement partner once transaction volume and trust justify it.",
+            },
+          ].map(({ title, body }) => (
+            <article key={title} className="rounded-xl border border-dashed border-border p-5">
+              <h3 className="font-display text-base font-semibold">{title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+            </article>
+          ))}
+        </div>
       </section>
     </main>
   );
