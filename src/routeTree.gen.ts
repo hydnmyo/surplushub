@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as ImpactRouteImport } from './routes/impact'
+import { Route as MessengerRouteImport } from './routes/messenger'
 import { Route as TrustRouteImport } from './routes/trust'
 import { Route as WantedRouteImport } from './routes/wanted'
 import { Route as BusinessesIndexRouteImport } from './routes/businesses.index'
@@ -58,6 +59,11 @@ const ImpactRoute = ImpactRouteImport.update({
   path: '/impact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MessengerRoute = MessengerRouteImport.update({
+  id: '/messenger',
+  path: '/messenger',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrustRoute = TrustRouteImport.update({
   id: '/trust',
   path: '/trust',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/impact': typeof ImpactRoute
+  '/messenger': typeof MessengerRoute
   '/trust': typeof TrustRoute
   '/wanted': typeof WantedRoute
   '/businesses/$id': typeof BusinessesIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/impact': typeof ImpactRoute
+  '/messenger': typeof MessengerRoute
   '/trust': typeof TrustRoute
   '/wanted': typeof WantedRoute
   '/businesses/$id': typeof BusinessesIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/how-it-works': typeof HowItWorksRoute
   '/impact': typeof ImpactRoute
+  '/messenger': typeof MessengerRoute
   '/trust': typeof TrustRoute
   '/wanted': typeof WantedRoute
   '/businesses/$id': typeof BusinessesIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/how-it-works'
     | '/impact'
+    | '/messenger'
     | '/trust'
     | '/wanted'
     | '/businesses/$id'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/how-it-works'
     | '/impact'
+    | '/messenger'
     | '/trust'
     | '/wanted'
     | '/businesses/$id'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/how-it-works'
     | '/impact'
+    | '/messenger'
     | '/trust'
     | '/wanted'
     | '/businesses/$id'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   HowItWorksRoute: typeof HowItWorksRoute
   ImpactRoute: typeof ImpactRoute
+  MessengerRoute: typeof MessengerRoute
   TrustRoute: typeof TrustRoute
   WantedRoute: typeof WantedRoute
   BusinessesIdRoute: typeof BusinessesIdRoute
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImpactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/messenger': {
+      id: '/messenger'
+      path: '/messenger'
+      fullPath: '/messenger'
+      preLoaderRoute: typeof MessengerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trust': {
       id: '/trust'
       path: '/trust'
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   HowItWorksRoute: HowItWorksRoute,
   ImpactRoute: ImpactRoute,
+  MessengerRoute: MessengerRoute,
   TrustRoute: TrustRoute,
   WantedRoute: WantedRoute,
   BusinessesIdRoute: BusinessesIdRoute,

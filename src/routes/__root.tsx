@@ -18,6 +18,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { BusinessProfileProvider } from "@/components/business/BusinessProfileProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { PurchaseRequestProvider } from "@/components/requests/PurchaseRequestProvider";
+import { MessengerProvider } from "@/components/messenger/MessengerProvider";
 
 function NotFoundComponent() {
   return (
@@ -139,20 +140,22 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <PurchaseRequestProvider>
-          <BusinessProfileProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">
-                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                <Outlet />
-              </main>
-              <Footer />
-            </div>
-            <EcoMatchAI />
-            <Toaster />
-          </BusinessProfileProvider>
-        </PurchaseRequestProvider>
+        <MessengerProvider>
+          <PurchaseRequestProvider>
+            <BusinessProfileProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">
+                  {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                  <Outlet />
+                </main>
+                <Footer />
+              </div>
+              <EcoMatchAI />
+              <Toaster />
+            </BusinessProfileProvider>
+          </PurchaseRequestProvider>
+        </MessengerProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

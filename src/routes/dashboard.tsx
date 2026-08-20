@@ -182,9 +182,9 @@ function Dashboard() {
                     toast("Counter offer sent");
                   }}>Counter</Button>
                   <Button size="sm" variant="ghost" onClick={() => {
-                    updateRequestStatus(request.id, "Declined");
-                    toast("Request declined");
-                  }}>Decline</Button>
+                    updateRequestStatus(request.id, "Rejected");
+                    toast("Request rejected");
+                  }}>Reject</Button>
                 </div>
               )}
             </div>

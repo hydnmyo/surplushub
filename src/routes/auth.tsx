@@ -11,12 +11,22 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { CURRENT_USER, type AuthUser } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: search["redirect"] === "/messenger" ? "/messenger" : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Business Sign In & Registration | SurplusHub" },
-      { name: "description", content: "Sign in or register your business to list surplus materials, request purchases and manage transactions on SurplusHub." },
+      {
+        name: "description",
+        content:
+          "Sign in or register your business to list surplus materials, request purchases and manage transactions on SurplusHub.",
+      },
       { property: "og:title", content: "Sign in to SurplusHub" },
-      { property: "og:description", content: "Business accounts for buyers and sellers of surplus industrial materials." },
+      {
+        property: "og:description",
+        content: "Business accounts for buyers and sellers of surplus industrial materials.",
+      },
     ],
   }),
   component: AuthPage,
@@ -24,10 +34,15 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
   const { signIn } = useAuth();
   const go = (user: AuthUser, msg: string) => () => {
     signIn(user);
     toast.success(msg);
+    if (redirect === "/messenger") {
+      void navigate({ to: "/messenger", replace: true });
+      return;
+    }
     if (user.role === "business") {
       void navigate({ to: "/dashboard", replace: true });
       return;
@@ -37,18 +52,31 @@ function AuthPage() {
 
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-14">
-      <div className="flex justify-center"><Logo /></div>
+      <div className="flex justify-center">
+        <Logo />
+      </div>
       <Tabs defaultValue="signin" className="mt-8">
         <TabsList className="w-full">
-          <TabsTrigger value="signin" className="flex-1">Sign In</TabsTrigger>
-          <TabsTrigger value="register" className="flex-1">Register Business</TabsTrigger>
+          <TabsTrigger value="signin" className="flex-1">
+            Sign In
+          </TabsTrigger>
+          <TabsTrigger value="register" className="flex-1">
+            Register Business
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="signin" className="surface-card mt-5 space-y-3 p-6">
           <F label="Business email" placeholder="you@company.com" type="email" />
           <F label="Password" placeholder="••••••••" type="password" />
-          <Button className="w-full" onClick={go(CURRENT_USER, "Signed in as Green Stitch Textile (demo)")}>Sign In</Button>
-          <p className="text-center text-xs text-muted-foreground">Demo prototype — any credentials work.</p>
+          <Button
+            className="w-full"
+            onClick={go(CURRENT_USER, "Signed in as Green Stitch Textile (demo)")}
+          >
+            Sign In
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Demo prototype — any credentials work.
+          </p>
         </TabsContent>
 
         <TabsContent value="register" className="surface-card mt-5 space-y-3 p-6">
@@ -60,7 +88,12 @@ function AuthPage() {
           <F label="Phone" placeholder="+95 9 xxx xxx xxx" />
           <F label="Password" placeholder="••••••••" type="password" />
           <F label="Business registration document" type="file" />
-          <Button className="w-full" onClick={go(CURRENT_USER, "Business registered — verification pending")}>Create Business Account</Button>
+          <Button
+            className="w-full"
+            onClick={go(CURRENT_USER, "Business registered — verification pending")}
+          >
+            Create Business Account
+          </Button>
         </TabsContent>
       </Tabs>
     </div>

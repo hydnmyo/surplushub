@@ -7,13 +7,20 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  DEMO_BUYER_ID,
+  addPurchaseRequestMessage,
+  syncPurchaseRequestMessageStatus,
+  type PurchaseMessageStatus,
+} from "@/lib/messenger";
 
 const STORAGE_KEY = "surplushub.purchase-requests.v1";
 
-export type PurchaseRequestStatus = "Pending" | "Accepted" | "Countered" | "Declined";
+export type PurchaseRequestStatus = "Pending" | "Accepted" | "Countered" | "Rejected" | "Completed";
 
 export type PurchaseRequest = {
   id: string;
+  buyerId: string;
   listingId: string;
   listingTitle: string;
   sellerBusinessId: string;
@@ -28,7 +35,9 @@ export type PurchaseRequest = {
   createdAt: string;
 };
 
-type NewPurchaseRequest = Omit<PurchaseRequest, "id" | "status" | "createdAt">;
+type NewPurchaseRequest = Omit<PurchaseRequest, "buyerId" | "id" | "status" | "createdAt"> & {
+  buyerId?: string;
+};
 
 type PurchaseRequestContextValue = {
   requests: PurchaseRequest[];
@@ -53,6 +62,7 @@ export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
   const addRequest = useCallback((request: NewPurchaseRequest) => {
     const created: PurchaseRequest = {
       ...request,
+      buyerId: request.buyerId || DEMO_BUYER_ID,
       id: `REQ-${Date.now()}`,
       status: "Pending",
       createdAt: new Date().toISOString(),
@@ -62,6 +72,7 @@ export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
+    addPurchaseRequestMessage({ ...created, requestId: created.id });
     return created;
   }, []);
 
@@ -71,6 +82,7 @@ export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
+    syncPurchaseRequestMessageStatus(id, normalizeMessengerStatus(status));
   }, []);
 
   const value = useMemo(
@@ -78,7 +90,13 @@ export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
     [requests, addRequest, updateRequestStatus],
   );
 
-  return <PurchaseRequestContext.Provider value={value}>{children}</PurchaseRequestContext.Provider>;
+  return (
+    <PurchaseRequestContext.Provider value={value}>{children}</PurchaseRequestContext.Provider>
+  );
+}
+
+function normalizeMessengerStatus(status: PurchaseRequestStatus): PurchaseMessageStatus {
+  return status === "Countered" ? "Pending" : status;
 }
 
 export function usePurchaseRequests() {

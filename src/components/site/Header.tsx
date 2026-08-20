@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "./Logo";
 import { BUYER_NOTIFICATIONS, SELLER_NOTIFICATIONS } from "@/lib/data";
+import { MessengerButton } from "@/components/messenger/MessengerButton";
 
 const NAV = [
   { to: "/marketplace", label: "Marketplace" },
@@ -105,7 +106,11 @@ export function Header() {
             >
               {ABOUT_NAV.map((item) => (
                 <DropdownMenuItem key={item.to} asChild>
-                  <Link to={item.to} onClick={() => setAboutOpen(false)} className="w-full cursor-pointer">
+                  <Link
+                    to={item.to}
+                    onClick={() => setAboutOpen(false)}
+                    className="w-full cursor-pointer"
+                  >
                     {item.label}
                   </Link>
                 </DropdownMenuItem>
@@ -115,6 +120,7 @@ export function Header() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
+          <MessengerButton />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
@@ -129,7 +135,9 @@ export function Header() {
                 <DropdownMenuItem key={n.title} className="flex flex-col items-start gap-0.5 py-2">
                   <span className="text-sm font-medium">{n.title}</span>
                   <span className="text-xs text-muted-foreground">{n.body}</span>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{n.time}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {n.time}
+                  </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -146,14 +154,20 @@ export function Header() {
               </Button>
             </>
           ) : currentUser ? (
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>Sign Out</Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              Sign Out
+            </Button>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/auth">Login</Link>
+                <Link to="/auth" search={{ redirect: undefined }}>
+                  Login
+                </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/auth">Sign Up</Link>
+                <Link to="/auth" search={{ redirect: undefined }}>
+                  Sign Up
+                </Link>
               </Button>
             </>
           )}
@@ -173,7 +187,11 @@ export function Header() {
       {open && (
         <div id="mobile-navigation" className="border-t border-border bg-card px-4 py-3 lg:hidden">
           <nav className="flex flex-col">
-            <Link to="/" onClick={closeMobileNavigation} className="rounded-lg px-3 py-2 text-sm font-medium">
+            <Link
+              to="/"
+              onClick={closeMobileNavigation}
+              className="rounded-lg px-3 py-2 text-sm font-medium"
+            >
               Home
             </Link>
             {NAV.map((item) => (
@@ -200,7 +218,10 @@ export function Header() {
               />
             </button>
             {mobileAboutOpen && (
-              <div id="mobile-about-navigation" className="ml-3 flex flex-col border-l border-border pl-2">
+              <div
+                id="mobile-about-navigation"
+                className="ml-3 flex flex-col border-l border-border pl-2"
+              >
                 {ABOUT_NAV.map((item) => (
                   <Link
                     key={item.to}
@@ -215,6 +236,7 @@ export function Header() {
             )}
           </nav>
           <div className="mt-3 flex flex-wrap gap-2">
+            <MessengerButton onNavigate={closeMobileNavigation} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
@@ -226,10 +248,15 @@ export function Header() {
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.map((n) => (
-                  <DropdownMenuItem key={n.title} className="flex flex-col items-start gap-0.5 py-2">
+                  <DropdownMenuItem
+                    key={n.title}
+                    className="flex flex-col items-start gap-0.5 py-2"
+                  >
                     <span className="text-sm font-medium">{n.title}</span>
                     <span className="text-xs text-muted-foreground">{n.body}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{n.time}</span>
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {n.time}
+                    </span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -246,14 +273,20 @@ export function Header() {
                 </Button>
               </>
             ) : currentUser ? (
-              <Button size="sm" variant="ghost" onClick={handleSignOut}>Sign Out</Button>
+              <Button size="sm" variant="ghost" onClick={handleSignOut}>
+                Sign Out
+              </Button>
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild>
-                  <Link to="/auth" onClick={closeMobileNavigation}>Login</Link>
+                  <Link to="/auth" search={{ redirect: undefined }} onClick={closeMobileNavigation}>
+                    Login
+                  </Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
-                  <Link to="/auth" onClick={closeMobileNavigation}>Sign Up</Link>
+                  <Link to="/auth" search={{ redirect: undefined }} onClick={closeMobileNavigation}>
+                    Sign Up
+                  </Link>
                 </Button>
               </>
             )}
