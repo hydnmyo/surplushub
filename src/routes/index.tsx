@@ -52,8 +52,8 @@ function Index() {
             Turn Surplus Into Opportunity.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-forest-foreground/80">
-            A circular B2B marketplace where businesses can sell surplus materials and find the resources
-            they need.
+            A circular B2B marketplace where businesses can sell surplus materials and find the
+            resources they need.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="xl" variant="hero" asChild>
@@ -68,7 +68,6 @@ function Index() {
               <Link to="/wanted">Post What You Need</Link>
             </Button>
           </div>
-
         </div>
       </section>
 
@@ -129,12 +128,11 @@ function Index() {
                 />
               </div>
               <div className="p-4">
-                <p className="font-display text-sm font-semibold">
-                  {c.name}
-                </p>
+                <p className="font-display text-sm font-semibold">{c.name}</p>
                 <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{c.blurb}</p>
                 <p className="mt-3 text-xs font-medium text-primary">
-                  {listingCountByCategory(c.id)} {listingCountByCategory(c.id) === 1 ? "listing" : "listings"}
+                  {listingCountByCategory(c.id)}{" "}
+                  {listingCountByCategory(c.id) === 1 ? "listing" : "listings"}
                 </p>
               </div>
             </Link>
@@ -164,7 +162,8 @@ function Index() {
             Can't find what you need? Tell businesses what you're looking for.
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Post a requirement and verified suppliers with matching stock can send you offers directly.
+            Post a requirement and verified suppliers with matching stock can send you offers
+            directly.
           </p>
           <ul className="mt-5 space-y-3">
             {WANTED.slice(0, 3).map((w) => (
@@ -194,9 +193,9 @@ function Index() {
           </p>
           <div className="mt-5 space-y-2.5">
             {[
-              "\"I need packaging materials for my small business.\"",
-              "\"Find PET plastic scrap in Yangon under 700 MMK per kg.\"",
-              "\"I have 200kg of wood offcuts. Who might need them?\"",
+              '"I need packaging materials for my small business."',
+              '"Find PET plastic scrap in Yangon under 700 MMK per kg."',
+              '"I have 200kg of wood offcuts. Who might need them?"',
             ].map((q) => (
               <p key={q} className="rounded-xl border border-border bg-card px-3.5 py-2.5 text-sm">
                 {q}
@@ -213,9 +212,21 @@ function Index() {
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
         <div className="surface-card grid gap-6 p-8 md:grid-cols-3">
           {[
-            { icon: BadgeCheck, title: "Verified businesses", body: "Company documents reviewed before a verified badge is issued." },
-            { icon: LineChart, title: "Tracked transactions", body: "Every deal has an ID, a status trail and QR-based completion." },
-            { icon: Sparkles, title: "Verified reviews only", body: "Only buyers with a completed transaction can review a business." },
+            {
+              icon: BadgeCheck,
+              title: "Verified businesses",
+              body: "Company documents reviewed before a verified badge is issued.",
+            },
+            {
+              icon: LineChart,
+              title: "Tracked transactions",
+              body: "Every deal has an ID, a status trail and QR-based completion.",
+            },
+            {
+              icon: Sparkles,
+              title: "Verified reviews only",
+              body: "Only buyers with a completed transaction can review a business.",
+            },
           ].map(({ icon: Icon, title, body }) => (
             <div key={title} className="flex gap-3">
               <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
@@ -243,7 +254,9 @@ function SectionHead({
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          {eyebrow}
+        </p>
         <h2 className="mt-2 font-display text-3xl font-semibold">{title}</h2>
       </div>
       {action && (

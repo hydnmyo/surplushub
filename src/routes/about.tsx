@@ -41,14 +41,16 @@ const REVENUE_STREAMS = [
 function About() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">About SurplusHub</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+        About SurplusHub
+      </p>
       <h1 className="mt-3 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
         Business value first, circular impact built in.
       </h1>
       <p className="mt-4 max-w-3xl text-muted-foreground">
-        SurplusHub helps businesses discover materials, find new trading partners, negotiate deals and
-        build a verified transaction history. The marketplace earns revenue by making those exchanges
-        easier and more valuable for both sides.
+        SurplusHub helps businesses discover materials, find new trading partners, negotiate deals
+        and build a verified transaction history. The marketplace earns revenue by making those
+        exchanges easier and more valuable for both sides.
       </p>
 
       <section id="business-model" aria-labelledby="business-model-heading" className="mt-12">
@@ -56,8 +58,8 @@ function About() {
           Business Model
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          The core marketplace does not hold buyer funds during the MVP phase. Buyers and sellers settle
-          payment directly while SurplusHub records and verifies the transaction.
+          The core marketplace does not hold buyer funds during the MVP phase. Buyers and sellers
+          settle payment directly while SurplusHub records and verifies the transaction.
         </p>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {REVENUE_STREAMS.map(({ icon: Icon, title, body }) => (

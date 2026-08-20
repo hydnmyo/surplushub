@@ -36,8 +36,7 @@ interface StoredChat {
   flow: EcoMatchFlowState;
 }
 
-const welcomeText =
-  "Hi, I'm Loopi! What can I help you find today?";
+const welcomeText = "Hi, I'm Loopi! What can I help you find today?";
 
 const ACTIONS: { action: ChatAction; helper: string }[] = [
   { action: "find-materials", helper: "Search current listings" },
@@ -259,11 +258,7 @@ export function EcoMatchAI() {
   );
 }
 
-function FloatingAssistant({
-  onOpen,
-}: {
-  onOpen: () => void;
-}) {
+function FloatingAssistant({ onOpen }: { onOpen: () => void }) {
   return (
     <div className="fixed bottom-5 right-4 z-[70] flex flex-col items-center gap-1 sm:bottom-6 sm:right-6">
       <button
@@ -287,13 +282,7 @@ function FloatingAssistant({
   );
 }
 
-function ChatHeader({
-  onClose,
-  onNewChat,
-}: {
-  onClose: () => void;
-  onNewChat: () => void;
-}) {
+function ChatHeader({ onClose, onNewChat }: { onClose: () => void; onNewChat: () => void }) {
   return (
     <header className="gradient-hero px-4 py-3.5 text-forest-foreground">
       <div className="flex items-center gap-3">
@@ -395,9 +384,7 @@ function ChatMessageBubble({
         )}
       >
         {message.answer?.intent && !isUser && (
-          <Badge variant="verified">
-            {message.answer.intent}
-          </Badge>
+          <Badge variant="verified">{message.answer.intent}</Badge>
         )}
         <p className="whitespace-pre-wrap leading-6">{message.text}</p>
         {message.answer && (

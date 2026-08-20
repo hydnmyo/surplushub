@@ -15,4 +15,3 @@ export const CURRENT_USER = {
   name: "Daw Khin Myat",
   role: "business",
 } as const satisfies AuthUser;
-

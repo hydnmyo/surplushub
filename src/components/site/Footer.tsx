@@ -8,8 +8,8 @@ export function Footer() {
         <div className="md:col-span-1">
           <Logo onDark />
           <p className="mt-4 max-w-xs text-sm text-forest-foreground/70">
-            A circular B2B marketplace connecting businesses that have materials with businesses that
-            need them. Built for Myanmar industry.
+            A circular B2B marketplace connecting businesses that have materials with businesses
+            that need them. Built for Myanmar industry.
           </p>
         </div>
         <FooterCol

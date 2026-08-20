@@ -14,11 +14,24 @@ export const Route = createFileRoute("/businesses/$id")({
     return { business };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Business unavailable — SurplusHub" }, { name: "robots", content: "noindex" }] };
+    if (!loaderData)
+      return {
+        meta: [
+          { title: "Business unavailable — SurplusHub" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
     const b = loaderData.business;
     const title = `${b.name} — ${b.industry}, ${b.location} | SurplusHub`;
     const description = `${b.name} supplies surplus materials from ${b.location}. ${b.transactions} verified transactions, rated ${b.rating}.`;
-    return { meta: [{ title }, { name: "description", content: description }, { property: "og:title", content: title }, { property: "og:description", content: description }] };
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+      ],
+    };
   },
   component: BusinessProfile,
 });
@@ -32,29 +45,58 @@ function BusinessProfile() {
   return (
     <div>
       <div className="relative h-52 overflow-hidden">
-        <img src={b.bannerUrl || heroImg} alt={`${b.name} facility`} width={1600} height={1008} className="size-full object-cover" />
+        <img
+          src={b.bannerUrl || heroImg}
+          alt={`${b.name} facility`}
+          width={1600}
+          height={1008}
+          className="size-full object-cover"
+        />
         <div className="absolute inset-0 gradient-hero opacity-80" />
       </div>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="surface-card relative z-10 -mt-16 flex flex-wrap items-center gap-5 p-6">
           {b.avatarUrl ? (
-            <img src={b.avatarUrl} alt={`${b.name} logo`} className="size-20 rounded-2xl border border-border bg-background object-cover" />
+            <img
+              src={b.avatarUrl}
+              alt={`${b.name} logo`}
+              className="size-20 rounded-2xl border border-border bg-background object-cover"
+            />
           ) : (
-            <span className="flex size-20 items-center justify-center rounded-2xl bg-mint font-display text-2xl font-semibold text-accent-foreground">{b.initials}</span>
+            <span className="flex size-20 items-center justify-center rounded-2xl bg-mint font-display text-2xl font-semibold text-accent-foreground">
+              {b.initials}
+            </span>
           )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-2xl font-semibold">{b.name}</h1>
-              {b.verified && <Badge variant="verified" className="gap-1"><BadgeCheck className="size-3.5" />Verified Business</Badge>}
+              {b.verified && (
+                <Badge variant="verified" className="gap-1">
+                  <BadgeCheck className="size-3.5" />
+                  Verified Business
+                </Badge>
+              )}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {b.industry} · <MapPin className="inline size-3.5" /> {b.location} · Member since {b.since}
+              {b.industry} · <MapPin className="inline size-3.5" /> {b.location} · Member since{" "}
+              {b.since}
             </p>
           </div>
           <div className="flex gap-8">
-            <div><p className="font-display text-xl font-semibold">{b.rating} <Star className="inline size-4 fill-warning text-warning" /></p><p className="text-xs text-muted-foreground">Rating</p></div>
-            <div><p className="font-display text-xl font-semibold">{b.transactions}</p><p className="text-xs text-muted-foreground">Verified transactions</p></div>
-            <div><p className="font-display text-xl font-semibold">{listings.length}</p><p className="text-xs text-muted-foreground">Active listings</p></div>
+            <div>
+              <p className="font-display text-xl font-semibold">
+                {b.rating} <Star className="inline size-4 fill-warning text-warning" />
+              </p>
+              <p className="text-xs text-muted-foreground">Rating</p>
+            </div>
+            <div>
+              <p className="font-display text-xl font-semibold">{b.transactions}</p>
+              <p className="text-xs text-muted-foreground">Verified transactions</p>
+            </div>
+            <div>
+              <p className="font-display text-xl font-semibold">{listings.length}</p>
+              <p className="text-xs text-muted-foreground">Active listings</p>
+            </div>
           </div>
         </div>
 
@@ -67,18 +109,24 @@ function BusinessProfile() {
 
           <TabsContent value="materials" className="mt-6">
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {listings.map((l) => <MaterialCard key={l.id} listing={l} />)}
+              {listings.map((l) => (
+                <MaterialCard key={l.id} listing={l} />
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="reviews" className="mt-6 space-y-4">
-            {reviews.length === 0 && <p className="text-sm text-muted-foreground">No verified reviews yet.</p>}
+            {reviews.length === 0 && (
+              <p className="text-sm text-muted-foreground">No verified reviews yet.</p>
+            )}
             {reviews.map((r) => (
               <div key={r.id} className="surface-card p-5">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-semibold">{r.buyer}</p>
                   <Badge variant="verified">✓ Verified Purchase</Badge>
-                  <span className="text-xs text-muted-foreground">{r.date} · {r.material}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {r.date} · {r.material}
+                  </span>
                 </div>
                 <p className="mt-2 text-sm">{r.text}</p>
                 <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-4">
@@ -97,7 +145,11 @@ function BusinessProfile() {
                 <h2 className="font-display text-lg font-semibold">Company description</h2>
                 <p className="mt-2 text-sm text-muted-foreground">{b.description}</p>
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  {b.categories.map((c) => <Badge key={c} variant="soft">{categoryName(c)}</Badge>)}
+                  {b.categories.map((c) => (
+                    <Badge key={c} variant="soft">
+                      {categoryName(c)}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               <div>

@@ -132,10 +132,30 @@ export function EditBusinessProfileModal({
           </DialogHeader>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <ProfileField label="Business name" value={form.name} onChange={(value) => setField("name", value)} required />
-            <ProfileField label="Category / Industry" value={form.industry} onChange={(value) => setField("industry", value)} required />
-            <ProfileField label="Location" value={form.location} onChange={(value) => setField("location", value)} required />
-            <ProfileField label="Website" value={form.website} onChange={(value) => setField("website", value)} placeholder="greenstitch.com.mm" />
+            <ProfileField
+              label="Business name"
+              value={form.name}
+              onChange={(value) => setField("name", value)}
+              required
+            />
+            <ProfileField
+              label="Category / Industry"
+              value={form.industry}
+              onChange={(value) => setField("industry", value)}
+              required
+            />
+            <ProfileField
+              label="Location"
+              value={form.location}
+              onChange={(value) => setField("location", value)}
+              required
+            />
+            <ProfileField
+              label="Website"
+              value={form.website}
+              onChange={(value) => setField("website", value)}
+              placeholder="greenstitch.com.mm"
+            />
 
             <div className="sm:col-span-2">
               <Label htmlFor="business-description">About / Description</Label>
@@ -147,25 +167,65 @@ export function EditBusinessProfileModal({
                 maxLength={1200}
                 required
               />
-              <p className="mt-1 text-right text-xs text-muted-foreground">{form.description.length}/1200</p>
+              <p className="mt-1 text-right text-xs text-muted-foreground">
+                {form.description.length}/1200
+              </p>
             </div>
 
-            <ProfileField label="Avatar / Logo URL" value={form.avatarUrl} onChange={(value) => setField("avatarUrl", value)} placeholder="https://…" />
-            <ProfileField label="Banner / Cover image URL" value={form.bannerUrl} onChange={(value) => setField("bannerUrl", value)} placeholder="https://…" />
+            <ProfileField
+              label="Avatar / Logo URL"
+              value={form.avatarUrl}
+              onChange={(value) => setField("avatarUrl", value)}
+              placeholder="https://…"
+            />
+            <ProfileField
+              label="Banner / Cover image URL"
+              value={form.bannerUrl}
+              onChange={(value) => setField("bannerUrl", value)}
+              placeholder="https://…"
+            />
 
             <div className="sm:col-span-2 border-t border-border pt-4">
               <h3 className="font-display text-sm font-semibold">Contact details</h3>
             </div>
-            <ProfileField label="Email" value={form.email} onChange={(value) => setField("email", value)} type="email" required />
-            <ProfileField label="Phone" value={form.phone} onChange={(value) => setField("phone", value)} required />
-            <ProfileField label="Facebook" value={form.facebook} onChange={(value) => setField("facebook", value)} placeholder="facebook.com/…" />
-            <ProfileField label="LinkedIn" value={form.linkedin} onChange={(value) => setField("linkedin", value)} placeholder="linkedin.com/company/…" />
-            <ProfileField label="Instagram" value={form.instagram} onChange={(value) => setField("instagram", value)} placeholder="instagram.com/…" />
+            <ProfileField
+              label="Email"
+              value={form.email}
+              onChange={(value) => setField("email", value)}
+              type="email"
+              required
+            />
+            <ProfileField
+              label="Phone"
+              value={form.phone}
+              onChange={(value) => setField("phone", value)}
+              required
+            />
+            <ProfileField
+              label="Facebook"
+              value={form.facebook}
+              onChange={(value) => setField("facebook", value)}
+              placeholder="facebook.com/…"
+            />
+            <ProfileField
+              label="LinkedIn"
+              value={form.linkedin}
+              onChange={(value) => setField("linkedin", value)}
+              placeholder="linkedin.com/company/…"
+            />
+            <ProfileField
+              label="Instagram"
+              value={form.instagram}
+              onChange={(value) => setField("instagram", value)}
+              placeholder="instagram.com/…"
+            />
           </div>
 
           <DialogFooter className="mt-6 gap-2">
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={saving}>Cancel</Button>
+              <Button type="button" variant="outline" disabled={saving}>
+                Cancel
+              </Button>
             </DialogClose>
             <Button type="submit" disabled={saving}>
               {saving && <LoaderCircle className="size-4 animate-spin" />}

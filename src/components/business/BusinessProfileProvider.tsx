@@ -65,9 +65,7 @@ export function BusinessProfileProvider({ children }: { children: ReactNode }) {
 
       const next = businesses.map((business) => (business.id === id ? updated : business));
       const overrides = Object.fromEntries(
-        next
-          .filter((business) => business.userId)
-          .map((business) => [business.id, business]),
+        next.filter((business) => business.userId).map((business) => [business.id, business]),
       );
 
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
@@ -86,7 +84,9 @@ export function BusinessProfileProvider({ children }: { children: ReactNode }) {
     [businesses, updateBusiness],
   );
 
-  return <BusinessProfileContext.Provider value={value}>{children}</BusinessProfileContext.Provider>;
+  return (
+    <BusinessProfileContext.Provider value={value}>{children}</BusinessProfileContext.Provider>
+  );
 }
 
 export function useBusinessProfiles() {
@@ -98,4 +98,3 @@ export function useBusinessProfiles() {
 export function useBusinessProfile(id: string) {
   return useBusinessProfiles().getBusiness(id);
 }
-

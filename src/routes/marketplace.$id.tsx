@@ -51,7 +51,12 @@ export const Route = createFileRoute("/marketplace/$id")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Listing unavailable — SurplusHub" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [
+          { title: "Listing unavailable — SurplusHub" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
     }
     const l = loaderData.listing;
     const title = `${l.title} — ${l.location} | SurplusHub`;
@@ -73,7 +78,8 @@ function ListingDetail() {
   const { currentUser } = useAuth();
   const { addRequest } = usePurchaseRequests();
   const seller = businessById(listing.sellerId)!;
-  const isOwnListing = currentUser?.role === "business" && currentUser.businessId === listing.sellerId;
+  const isOwnListing =
+    currentUser?.role === "business" && currentUser.businessId === listing.sellerId;
   const [contactUnlocked, setContactUnlocked] = useState(false);
   const [stage, setStage] = useState(0);
   const [qty, setQty] = useState(String(Math.min(listing.quantity, 100)));
@@ -81,7 +87,9 @@ function ListingDetail() {
   const [fulfillment, setFulfillment] = useState("Self pickup");
   const [preferredDate, setPreferredDate] = useState("2026-08-20");
   const [requestMessage, setRequestMessage] = useState("");
-  const related = LISTINGS.filter((l) => l.category === listing.category && l.id !== listing.id).slice(0, 3);
+  const related = LISTINGS.filter(
+    (l) => l.category === listing.category && l.id !== listing.id,
+  ).slice(0, 3);
   const img = categoryImage(listing.category);
 
   const submitRequest = () => {
@@ -158,19 +166,25 @@ function ListingDetail() {
                 ["Available", listing.availableFrom],
                 ["Processing", listing.requiresProcessing ? "Requires processing" : "Ready to use"],
               ].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4 border-b border-border/70 pb-2 text-sm">
+                <div
+                  key={k}
+                  className="flex justify-between gap-4 border-b border-border/70 pb-2 text-sm"
+                >
                   <dt className="text-muted-foreground">{k}</dt>
                   <dd className="text-right font-medium">{v}</dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{listing.description}</p>
+            <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+              {listing.description}
+            </p>
           </section>
 
           <section className="surface-card mt-6 p-6">
             <h2 className="font-display text-lg font-semibold">Potential Uses</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Suggestions only — suitability is not guaranteed and should be confirmed with the seller.
+              Suggestions only — suitability is not guaranteed and should be confirmed with the
+              seller.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {listing.uses.map((u) => (
@@ -196,7 +210,9 @@ function ListingDetail() {
                     >
                       {i + 1}
                     </span>
-                    <span className={i <= stage ? "font-medium" : "text-muted-foreground"}>{s}</span>
+                    <span className={i <= stage ? "font-medium" : "text-muted-foreground"}>
+                      {s}
+                    </span>
                   </li>
                 ))}
               </ol>
@@ -207,7 +223,9 @@ function ListingDetail() {
                     variant="outline"
                     onClick={() => {
                       setStage(Math.min(stage + 1, TX_FLOW.length - 1));
-                      toast.success("Transaction advanced", { description: TX_FLOW[Math.min(stage + 1, 7)] });
+                      toast.success("Transaction advanced", {
+                        description: TX_FLOW[Math.min(stage + 1, 7)],
+                      });
                     }}
                   >
                     Advance demo step
@@ -224,18 +242,29 @@ function ListingDetail() {
                   </div>
                   <div className="space-y-1.5 text-sm">
                     <p className="font-display text-lg font-semibold">TXN-20481</p>
-                    <p><span className="text-muted-foreground">Buyer:</span> ABC Products</p>
-                    <p><span className="text-muted-foreground">Seller:</span> {seller.name}</p>
-                    <p><span className="text-muted-foreground">Material:</span> {listing.title}</p>
-                    <p><span className="text-muted-foreground">Quantity:</span> {qty} {listing.unit}</p>
-                    <p><span className="text-muted-foreground">Total:</span> {(Number(qty || 0) * (listing.price ?? 0)).toLocaleString("en-US")} MMK</p>
+                    <p>
+                      <span className="text-muted-foreground">Buyer:</span> ABC Products
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Seller:</span> {seller.name}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Material:</span> {listing.title}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Quantity:</span> {qty} {listing.unit}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Total:</span>{" "}
+                      {(Number(qty || 0) * (listing.price ?? 0)).toLocaleString("en-US")} MMK
+                    </p>
                     <Badge variant={stage >= 7 ? "verified" : "warning"} className="mt-2">
                       {stage >= 7 ? "✓ Transaction Completed" : "Ready for Completion"}
                     </Badge>
                     <p className="pt-2 text-xs text-muted-foreground">
-                      At pickup, the seller scans this QR code or both parties confirm the transaction ID.
-                      Buyer and seller settle payment directly — integrated payment and escrow can be
-                      introduced in a future phase.
+                      At pickup, the seller scans this QR code or both parties confirm the
+                      transaction ID. Buyer and seller settle payment directly — integrated payment
+                      and escrow can be introduced in a future phase.
                     </p>
                   </div>
                 </div>
@@ -257,9 +286,12 @@ function ListingDetail() {
               )}
             </div>
             <h1 className="mt-3 font-display text-2xl font-semibold">{listing.title}</h1>
-            <p className="mt-3 font-display text-3xl font-semibold text-primary">{priceLabel(listing)}</p>
+            <p className="mt-3 font-display text-3xl font-semibold text-primary">
+              {priceLabel(listing)}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {listing.quantity.toLocaleString("en-US")} {listing.unit} available · Min order {listing.minOrder}
+              {listing.quantity.toLocaleString("en-US")} {listing.unit} available · Min order{" "}
+              {listing.minOrder}
             </p>
             <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
               <MapPin className="size-4" /> {listing.location}
@@ -269,8 +301,12 @@ function ListingDetail() {
 
             {isOwnListing ? (
               <div className="mt-5 rounded-xl border border-primary/20 bg-mint p-4">
-                <p className="text-sm font-semibold text-accent-foreground">This is your business listing</p>
-                <p className="mt-1 text-xs text-muted-foreground">Buyer actions are hidden when you view your own material.</p>
+                <p className="text-sm font-semibold text-accent-foreground">
+                  This is your business listing
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Buyer actions are hidden when you view your own material.
+                </p>
                 <Button className="mt-4 w-full" asChild>
                   <Link to="/dashboard">
                     <LayoutDashboard className="size-4" /> Manage in Dashboard
@@ -278,79 +314,109 @@ function ListingDetail() {
                 </Button>
               </div>
             ) : (
-            <div className="mt-5 space-y-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="w-full" size="lg">
-                    Request to Buy
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Request to Buy</DialogTitle>
-                    <DialogDescription>
-                      Your request creates a tracked transaction lead with {seller.name}.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-3">
-                    <div>
-                      <Label>Quantity ({listing.unit})</Label>
-                      <Input className="mt-1.5" value={qty} onChange={(e) => setQty(e.target.value)} />
-                    </div>
-                    <div>
-                      <Label>Offered price (MMK)</Label>
-                      <Input className="mt-1.5" value={offeredPrice} onChange={(e) => setOfferedPrice(e.target.value)} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
+              <div className="mt-5 space-y-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full" size="lg">
+                      Request to Buy
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Request to Buy</DialogTitle>
+                      <DialogDescription>
+                        Your request creates a tracked transaction lead with {seller.name}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-3">
                       <div>
-                        <Label>Pickup / delivery</Label>
-                        <Input className="mt-1.5" value={fulfillment} onChange={(e) => setFulfillment(e.target.value)} />
+                        <Label>Quantity ({listing.unit})</Label>
+                        <Input
+                          className="mt-1.5"
+                          value={qty}
+                          onChange={(e) => setQty(e.target.value)}
+                        />
                       </div>
                       <div>
-                        <Label>Preferred date</Label>
-                        <Input className="mt-1.5" type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} />
+                        <Label>Offered price (MMK)</Label>
+                        <Input
+                          className="mt-1.5"
+                          value={offeredPrice}
+                          onChange={(e) => setOfferedPrice(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Pickup / delivery</Label>
+                          <Input
+                            className="mt-1.5"
+                            value={fulfillment}
+                            onChange={(e) => setFulfillment(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label>Preferred date</Label>
+                          <Input
+                            className="mt-1.5"
+                            type="date"
+                            value={preferredDate}
+                            onChange={(e) => setPreferredDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Message</Label>
+                        <Textarea
+                          className="mt-1.5"
+                          value={requestMessage}
+                          onChange={(e) => setRequestMessage(e.target.value)}
+                          placeholder="Tell the seller how you plan to use the material…"
+                        />
                       </div>
                     </div>
-                    <div>
-                      <Label>Message</Label>
-                      <Textarea className="mt-1.5" value={requestMessage} onChange={(e) => setRequestMessage(e.target.value)} placeholder="Tell the seller how you plan to use the material…" />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button onClick={submitRequest}>Send Request</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                    <DialogFooter>
+                      <Button onClick={submitRequest}>Send Request</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() =>
-                  contactUnlocked
-                    ? toast.info("Contact details unlocked below")
-                    : toast.warning("Submit a Request to Buy or Request Inspection first", {
-                        description: "Contact details are shared once a genuine inquiry exists.",
-                      })
-                }
-              >
-                <MessageSquare className="size-4" /> Contact Seller
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => toast.success("Offer sent to seller")}
-              >
-                <Handshake className="size-4" /> Make an Offer
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="ghost" className="flex-1" onClick={() => toast.success("Listing saved")}>
-                  <Heart className="size-4" /> Save
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    contactUnlocked
+                      ? toast.info("Contact details unlocked below")
+                      : toast.warning("Submit a Request to Buy or Request Inspection first", {
+                          description: "Contact details are shared once a genuine inquiry exists.",
+                        })
+                  }
+                >
+                  <MessageSquare className="size-4" /> Contact Seller
                 </Button>
-                <Button variant="ghost" className="flex-1" onClick={() => toast.info("Listing reported to moderation")}>
-                  <Flag className="size-4" /> Report
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => toast.success("Offer sent to seller")}
+                >
+                  <Handshake className="size-4" /> Make an Offer
                 </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    className="flex-1"
+                    onClick={() => toast.success("Listing saved")}
+                  >
+                    <Heart className="size-4" /> Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="flex-1"
+                    onClick={() => toast.info("Listing reported to moderation")}
+                  >
+                    <Flag className="size-4" /> Report
+                  </Button>
+                </div>
               </div>
-            </div>
             )}
           </div>
 
@@ -398,7 +464,8 @@ function ListingDetail() {
                 </>
               ) : (
                 <p className="text-muted-foreground">
-                  Contact details are shared after you submit a Request to Buy or Request Inspection.
+                  Contact details are shared after you submit a Request to Buy or Request
+                  Inspection.
                 </p>
               )}
             </div>

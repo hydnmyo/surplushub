@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { CATEGORIES, LISTINGS, WANTED, categoryName, priceLabel } from "@/lib/data";
 
@@ -16,9 +22,16 @@ export const Route = createFileRoute("/wanted")({
   head: () => ({
     meta: [
       { title: "Material Wanted — Post What Your Business Needs | SurplusHub" },
-      { name: "description", content: "Browse live buyer demand for surplus materials in Myanmar, or post your own requirement and receive supplier offers." },
+      {
+        name: "description",
+        content:
+          "Browse live buyer demand for surplus materials in Myanmar, or post your own requirement and receive supplier offers.",
+      },
       { property: "og:title", content: "Material Wanted — SurplusHub" },
-      { property: "og:description", content: "Tell businesses what you're looking for and let Loopi find matching suppliers." },
+      {
+        property: "og:description",
+        content: "Tell businesses what you're looking for and let Loopi find matching suppliers.",
+      },
     ],
   }),
   component: WantedPage,
@@ -73,13 +86,20 @@ function WantedPage() {
                         <Badge variant="verified">{92 - i * 7}% Match</Badge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {m.quantity.toLocaleString("en-US")} {m.unit} · {priceLabel(m)} · {m.location}
+                        {m.quantity.toLocaleString("en-US")} {m.unit} · {priceLabel(m)} ·{" "}
+                        {m.location}
                       </p>
                       <div className="mt-2 flex gap-2">
                         <Button size="sm" asChild>
-                          <Link to="/marketplace/$id" params={{ id: m.id }}>View Material</Link>
+                          <Link to="/marketplace/$id" params={{ id: m.id }}>
+                            View Material
+                          </Link>
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => toast.success("Offer requested from supplier")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toast.success("Offer requested from supplier")}
+                        >
                           Request Offer
                         </Button>
                       </div>
@@ -90,7 +110,11 @@ function WantedPage() {
 
               <div className="mt-auto flex gap-2 pt-4">
                 <MakeOfferDialog title={w.title} />
-                <Button variant="outline" size="sm" onClick={() => setOpenId(openId === w.id ? null : w.id)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOpenId(openId === w.id ? null : w.id)}
+                >
                   {openId === w.id ? "Hide AI matches" : "View AI matches"}
                 </Button>
               </div>
@@ -120,14 +144,18 @@ function PostRequirementDialog() {
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Post a Material Wanted requirement</DialogTitle>
-          <DialogDescription>Verified suppliers with matching stock can send you offers.</DialogDescription>
+          <DialogDescription>
+            Verified suppliers with matching stock can send you offers.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <Field label="Material" placeholder="PET plastic scrap" />
           <div>
             <Label>Category</Label>
             <select className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-              {CATEGORIES.map((c) => <option key={c.id}>{c.name}</option>)}
+              {CATEGORIES.map((c) => (
+                <option key={c.id}>{c.name}</option>
+              ))}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -147,7 +175,13 @@ function PostRequirementDialog() {
           <Field label="Reference image" type="file" />
         </div>
         <DialogFooter>
-          <Button onClick={() => toast.success("Requirement posted", { description: "Loopi is searching for matching suppliers." })}>
+          <Button
+            onClick={() =>
+              toast.success("Requirement posted", {
+                description: "Loopi is searching for matching suppliers.",
+              })
+            }
+          >
             Post Requirement
           </Button>
         </DialogFooter>
@@ -178,11 +212,20 @@ function MakeOfferDialog({ title }: { title: string }) {
           <Field label="Photos" type="file" />
           <div>
             <Label>Message</Label>
-            <Textarea className="mt-1.5" placeholder="We can supply weekly if the quality matches." />
+            <Textarea
+              className="mt-1.5"
+              placeholder="We can supply weekly if the quality matches."
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => toast.success("Offer sent to buyer", { description: "Accepted offers create a transaction request." })}>
+          <Button
+            onClick={() =>
+              toast.success("Offer sent to buyer", {
+                description: "Accepted offers create a transaction request.",
+              })
+            }
+          >
             Send Offer
           </Button>
         </DialogFooter>
@@ -191,7 +234,15 @@ function MakeOfferDialog({ title }: { title: string }) {
   );
 }
 
-function Field({ label, placeholder, type }: { label: string; placeholder?: string; type?: string }) {
+function Field({
+  label,
+  placeholder,
+  type,
+}: {
+  label: string;
+  placeholder?: string;
+  type?: string;
+}) {
   return (
     <div>
       <Label>{label}</Label>

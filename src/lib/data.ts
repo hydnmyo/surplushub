@@ -409,7 +409,12 @@ export const LISTINGS: Listing[] = [
     status: "Active",
     description:
       "Unused cotton twill remaining from a cancelled export order. Rolls are stored indoors, wrapped and free from moisture damage. Mixed dye lots in navy, khaki and off-white.",
-    uses: ["Small-batch garment production", "Bag and accessory manufacturing", "Uniform production", "Craft and sampling"],
+    uses: [
+      "Small-batch garment production",
+      "Bag and accessory manufacturing",
+      "Uniform production",
+      "Craft and sampling",
+    ],
   },
   {
     id: "denim-offcuts",
@@ -459,7 +464,8 @@ export const LISTINGS: Listing[] = [
     popularity: 62,
     postedDaysAgo: 9,
     status: "Active",
-    description: "Surplus thread cones in white, black and grey. Sealed, stored on racks, unopened cartons.",
+    description:
+      "Surplus thread cones in white, black and grey. Sealed, stored on racks, unopened cartons.",
     uses: ["Garment sewing", "Bag manufacturing", "Tailoring workshops"],
   },
   {
@@ -512,7 +518,12 @@ export const LISTINGS: Listing[] = [
     status: "Active",
     description:
       "Baled clear and light-blue PET collected from beverage distributors. Requires washing and flaking before reprocessing. Bale weight approx. 55kg.",
-    uses: ["Plastic reprocessing", "Manufacturing inputs", "Packaging production", "Fibre production"],
+    uses: [
+      "Plastic reprocessing",
+      "Manufacturing inputs",
+      "Packaging production",
+      "Fibre production",
+    ],
   },
   {
     id: "plastic-packaging-surplus",
@@ -537,7 +548,8 @@ export const LISTINGS: Listing[] = [
     popularity: 78,
     postedDaysAgo: 4,
     status: "Active",
-    description: "Unused packaging film and bags from cancelled orders. Plain stock suitable for immediate reuse.",
+    description:
+      "Unused packaging film and bags from cancelled orders. Plain stock suitable for immediate reuse.",
     uses: ["Product packaging", "Shipping protection", "Storage"],
   },
   {
@@ -665,7 +677,8 @@ export const LISTINGS: Listing[] = [
     popularity: 88,
     postedDaysAgo: 6,
     status: "Active",
-    description: "Clean extrusion offcuts, sorted and free of steel contamination. Weighed on certified scale at pickup.",
+    description:
+      "Clean extrusion offcuts, sorted and free of steel contamination. Weighed on certified scale at pickup.",
     uses: ["Aluminium smelting", "Casting inputs", "Fabrication components"],
   },
   {
@@ -715,7 +728,8 @@ export const LISTINGS: Listing[] = [
     popularity: 77,
     postedDaysAgo: 7,
     status: "Active",
-    description: "Insulated wire requiring stripping before smelting. Delivery available within Bago and Yangon.",
+    description:
+      "Insulated wire requiring stripping before smelting. Delivery available within Bago and Yangon.",
     uses: ["Copper recovery", "Electrical component manufacturing"],
   },
   {
@@ -766,7 +780,8 @@ export const LISTINGS: Listing[] = [
     popularity: 73,
     postedDaysAgo: 12,
     status: "Active",
-    description: "Used but structurally sound pallets, inspected before release. Repairable units priced lower.",
+    description:
+      "Used but structurally sound pallets, inspected before release. Repairable units priced lower.",
     uses: ["Warehouse handling", "Furniture upcycling", "Crating"],
   },
   {
@@ -816,7 +831,8 @@ export const LISTINGS: Listing[] = [
     popularity: 75,
     postedDaysAgo: 4,
     status: "Active",
-    description: "Washed and crated returnable bottles, suitable for beverage and sauce filling lines.",
+    description:
+      "Washed and crated returnable bottles, suitable for beverage and sauce filling lines.",
     uses: ["Beverage bottling", "Sauces and condiments", "Retail packaging"],
   },
   {
@@ -866,7 +882,8 @@ export const LISTINGS: Listing[] = [
     popularity: 43,
     postedDaysAgo: 18,
     status: "Active",
-    description: "Cut sheets with minor edge chips. Suitable for framed or non-structural applications.",
+    description:
+      "Cut sheets with minor edge chips. Suitable for framed or non-structural applications.",
     uses: ["Framing", "Interior fittings", "Display cases"],
   },
   {
@@ -891,7 +908,8 @@ export const LISTINGS: Listing[] = [
     popularity: 47,
     postedDaysAgo: 9,
     status: "Active",
-    description: "Edge trim from gasket cutting. Buyers typically re-cut smaller parts or granulate.",
+    description:
+      "Edge trim from gasket cutting. Buyers typically re-cut smaller parts or granulate.",
     uses: ["Gasket re-cutting", "Matting", "Granulate inputs"],
   },
   {
@@ -942,7 +960,8 @@ export const LISTINGS: Listing[] = [
     popularity: 82,
     postedDaysAgo: 3,
     status: "Active",
-    description: "Unused tiles left after a completed hotel fit-out. Same batch number, sealed boxes of 4 pieces.",
+    description:
+      "Unused tiles left after a completed hotel fit-out. Same batch number, sealed boxes of 4 pieces.",
     uses: ["Interior fit-out", "Renovation projects", "Retail construction"],
   },
   {
@@ -1085,7 +1104,8 @@ export const WANTED: WantedPost[] = [
     buyer: "EcoBag Myanmar",
     postedDaysAgo: 1,
     offers: 4,
-    notes: "Baled material preferred. We can collect from Yangon industrial zones with our own truck.",
+    notes:
+      "Baled material preferred. We can collect from Yangon industrial zones with our own truck.",
   },
   {
     id: "w-cardboard-1000",
@@ -1101,7 +1121,8 @@ export const WANTED: WantedPost[] = [
     buyer: "Shwe Online Retail",
     postedDaysAgo: 2,
     offers: 6,
-    notes: "Boxes must be dry and flat-packed. Repeat monthly requirement if quality is consistent.",
+    notes:
+      "Boxes must be dry and flat-packed. Repeat monthly requirement if quality is consistent.",
   },
   {
     id: "w-wood-100",
@@ -1484,19 +1505,69 @@ export const SELLER_STATS = {
 };
 
 export const SELLER_NOTIFICATIONS = [
-  { title: "New buyer inquiry", body: "EcoBag Myanmar asked about PET Plastic Scrap", time: "8m ago", type: "inquiry" },
-  { title: "New wanted request matches your stock", body: "WANTED: 200kg Plastic Scrap — Yangon", time: "42m ago", type: "match" },
-  { title: "Buyer accepted your offer", body: "Mingalar Plastics Works accepted 198,000 MMK", time: "3h ago", type: "offer" },
-  { title: "Transaction completed", body: "TXN-20441 confirmed and verified", time: "1d ago", type: "transaction" },
-  { title: "Listing expiring soon", body: "HDPE Plastic Sheets expires in 3 days", time: "1d ago", type: "listing" },
-  { title: "Low inventory", body: "Plastic Packaging Surplus below 20kg", time: "2d ago", type: "inventory" },
+  {
+    title: "New buyer inquiry",
+    body: "EcoBag Myanmar asked about PET Plastic Scrap",
+    time: "8m ago",
+    type: "inquiry",
+  },
+  {
+    title: "New wanted request matches your stock",
+    body: "WANTED: 200kg Plastic Scrap — Yangon",
+    time: "42m ago",
+    type: "match",
+  },
+  {
+    title: "Buyer accepted your offer",
+    body: "Mingalar Plastics Works accepted 198,000 MMK",
+    time: "3h ago",
+    type: "offer",
+  },
+  {
+    title: "Transaction completed",
+    body: "TXN-20441 confirmed and verified",
+    time: "1d ago",
+    type: "transaction",
+  },
+  {
+    title: "Listing expiring soon",
+    body: "HDPE Plastic Sheets expires in 3 days",
+    time: "1d ago",
+    type: "listing",
+  },
+  {
+    title: "Low inventory",
+    body: "Plastic Packaging Surplus below 20kg",
+    time: "2d ago",
+    type: "inventory",
+  },
 ];
 
 export const BUYER_NOTIFICATIONS = [
-  { title: "New seller response", body: "Yangon Circular Plastics responded to your request", time: "12m ago", type: "response" },
-  { title: "AI match found", body: "Loopi found 3 suppliers for your cardboard request", time: "1h ago", type: "match" },
-  { title: "Deal confirmed", body: "TXN-20481 deal created — QR ready", time: "5h ago", type: "deal" },
-  { title: "Review available", body: "Leave a verified review for TXN-20476", time: "2d ago", type: "review" },
+  {
+    title: "New seller response",
+    body: "Yangon Circular Plastics responded to your request",
+    time: "12m ago",
+    type: "response",
+  },
+  {
+    title: "AI match found",
+    body: "Loopi found 3 suppliers for your cardboard request",
+    time: "1h ago",
+    type: "match",
+  },
+  {
+    title: "Deal confirmed",
+    body: "TXN-20481 deal created — QR ready",
+    time: "5h ago",
+    type: "deal",
+  },
+  {
+    title: "Review available",
+    body: "Leave a verified review for TXN-20476",
+    time: "2d ago",
+    type: "review",
+  },
 ];
 
 export const formatMMK = (n: number) => `${n.toLocaleString("en-US")} MMK`;

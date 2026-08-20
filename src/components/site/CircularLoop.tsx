@@ -40,7 +40,12 @@ export function CircularLoop({ onDark = false }: { onDark?: boolean }) {
           >
             {s.title}
           </h3>
-          <p className={cn("mt-1 text-xs", onDark ? "text-forest-foreground/65" : "text-muted-foreground")}>
+          <p
+            className={cn(
+              "mt-1 text-xs",
+              onDark ? "text-forest-foreground/65" : "text-muted-foreground",
+            )}
+          >
             {s.desc}
           </p>
           {i < STEPS.length - 1 && (

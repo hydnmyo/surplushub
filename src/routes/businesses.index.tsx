@@ -8,9 +8,17 @@ export const Route = createFileRoute("/businesses/")({
   head: () => ({
     meta: [
       { title: "Verified Businesses — Surplus Material Suppliers | SurplusHub" },
-      { name: "description", content: "Discover verified Myanmar businesses supplying surplus textile, plastic, paper, metal, wood, glass and construction materials." },
+      {
+        name: "description",
+        content:
+          "Discover verified Myanmar businesses supplying surplus textile, plastic, paper, metal, wood, glass and construction materials.",
+      },
       { property: "og:title", content: "Verified Businesses on SurplusHub" },
-      { property: "og:description", content: "Company profiles, ratings and verified transaction history for surplus material suppliers." },
+      {
+        property: "og:description",
+        content:
+          "Company profiles, ratings and verified transaction history for surplus material suppliers.",
+      },
     ],
   }),
   component: BusinessesPage,
@@ -20,7 +28,9 @@ function BusinessesPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <h1 className="font-display text-3xl font-semibold">Businesses</h1>
-      <p className="mt-2 text-muted-foreground">Suppliers and buyers active on the SurplusHub marketplace.</p>
+      <p className="mt-2 text-muted-foreground">
+        Suppliers and buyers active on the SurplusHub marketplace.
+      </p>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {BUSINESSES.map((b) => (
@@ -36,18 +46,37 @@ function BusinessesPage() {
             </div>
             <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{b.description}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {b.categories.map((c) => <Badge key={c} variant="soft">{categoryName(c)}</Badge>)}
+              {b.categories.map((c) => (
+                <Badge key={c} variant="soft">
+                  {categoryName(c)}
+                </Badge>
+              ))}
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" />{b.location}</span>
-              <span className="inline-flex items-center gap-1"><Star className="size-3.5 fill-warning text-warning" />{b.rating}</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="size-3.5" />
+                {b.location}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Star className="size-3.5 fill-warning text-warning" />
+                {b.rating}
+              </span>
               <span>{b.transactions} verified transactions</span>
-              {b.verified && <span className="inline-flex items-center gap-1 text-primary"><BadgeCheck className="size-3.5" />Verified</span>}
+              {b.verified && (
+                <span className="inline-flex items-center gap-1 text-primary">
+                  <BadgeCheck className="size-3.5" />
+                  Verified
+                </span>
+              )}
             </div>
             <div className="mt-auto flex items-center justify-between gap-2 pt-4">
-              <span className="text-xs text-muted-foreground">{listingsBySeller(b.id).length} active listings</span>
+              <span className="text-xs text-muted-foreground">
+                {listingsBySeller(b.id).length} active listings
+              </span>
               <Button size="sm" asChild>
-                <Link to="/businesses/$id" params={{ id: b.id }}>View Profile</Link>
+                <Link to="/businesses/$id" params={{ id: b.id }}>
+                  View Profile
+                </Link>
               </Button>
             </div>
           </article>

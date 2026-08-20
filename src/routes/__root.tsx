@@ -95,7 +95,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "SurplusHub — Turn Surplus Into Opportunity" },
       {
         property: "og:description",
-        content: "A circular B2B marketplace for surplus, reusable and recyclable industrial materials.",
+        content:
+          "A circular B2B marketplace for surplus, reusable and recyclable industrial materials.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
