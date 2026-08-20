@@ -19,6 +19,7 @@ import { BusinessProfileProvider } from "@/components/business/BusinessProfilePr
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { PurchaseRequestProvider } from "@/components/requests/PurchaseRequestProvider";
 import { MessengerProvider } from "@/components/messenger/MessengerProvider";
+import { OrderProvider } from "@/components/orders/OrderProvider";
 
 function NotFoundComponent() {
   return (
@@ -142,20 +143,22 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <MessengerProvider>
-          <PurchaseRequestProvider>
-            <BusinessProfileProvider>
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1">
-                  {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                  <Outlet />
-                </main>
-                <Footer />
-              </div>
-              <EcoMatchAI />
-              <Toaster />
-            </BusinessProfileProvider>
-          </PurchaseRequestProvider>
+          <OrderProvider>
+            <PurchaseRequestProvider>
+              <BusinessProfileProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1">
+                    {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                    <Outlet />
+                  </main>
+                  <Footer />
+                </div>
+                <EcoMatchAI />
+                <Toaster />
+              </BusinessProfileProvider>
+            </PurchaseRequestProvider>
+          </OrderProvider>
         </MessengerProvider>
       </AuthProvider>
     </QueryClientProvider>

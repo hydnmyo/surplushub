@@ -28,8 +28,8 @@ function HowItWorks() {
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-3xl font-semibold">How It Works</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        SurplusHub is a discovery, matching and verification layer for B2B material trade. Buyers
-        and sellers settle payment directly — the platform records and verifies the deal.
+        SurplusHub is a discovery, matching and transaction layer for B2B material trade. Buyers pay
+        securely through the platform, and sellers are paid once the material is accepted.
       </p>
 
       <div className="mt-10">
@@ -98,9 +98,6 @@ function HowItWorks() {
             </li>
           ))}
         </ol>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Integrated payment and escrow can be introduced in a future phase.
-        </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Button asChild>
             <Link to="/marketplace" search={{}}>

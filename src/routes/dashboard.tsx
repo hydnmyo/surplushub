@@ -14,6 +14,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { usePurchaseRequests } from "@/components/requests/PurchaseRequestProvider";
 import { EditBusinessProfileModal } from "@/components/business/EditBusinessProfileModal";
 import { useBusinessProfile } from "@/components/business/BusinessProfileProvider";
+import { SellerOrderList } from "@/components/orders/SellerOrderList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
 });
 
-type DashboardTab = "listings" | "requests" | "transactions" | "analytics";
+type DashboardTab = "listings" | "requests" | "orders" | "transactions" | "analytics";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -173,6 +174,7 @@ function Dashboard() {
         <TabsList>
           <TabsTrigger value="listings">My Listings</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
@@ -278,6 +280,10 @@ function Dashboard() {
               )}
             </div>
           ))}
+        </TabsContent>
+
+        <TabsContent value="orders" className="mt-6">
+          <SellerOrderList businessId={business.id} />
         </TabsContent>
 
         <TabsContent value="transactions" className="mt-6 space-y-3">

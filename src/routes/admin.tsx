@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BUSINESSES, LISTINGS, PLATFORM_STATS, TRANSACTIONS } from "@/lib/data";
+import { PayoutQueue } from "@/components/admin/PayoutQueue";
+import { RevenueSummary } from "@/components/admin/RevenueSummary";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -52,6 +54,8 @@ function Admin() {
           <TabsTrigger value="verification">Verification</TabsTrigger>
           <TabsTrigger value="listings">Listings</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
+          <TabsTrigger value="revenue">Revenue</TabsTrigger>
         </TabsList>
 
         <TabsContent value="verification" className="mt-6 space-y-3">
@@ -108,6 +112,13 @@ function Admin() {
               <Badge variant={t.status === "Completed" ? "verified" : "soft"}>{t.status}</Badge>
             </div>
           ))}
+        </TabsContent>
+        <TabsContent value="payouts" className="mt-6">
+          <PayoutQueue />
+        </TabsContent>
+
+        <TabsContent value="revenue" className="mt-6">
+          <RevenueSummary />
         </TabsContent>
       </Tabs>
     </div>

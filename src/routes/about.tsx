@@ -58,8 +58,7 @@ function About() {
           Business Model
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          The core marketplace does not hold buyer funds during the MVP phase. Buyers and sellers
-          settle payment directly while SurplusHub records and verifies the transaction.
+          SurplusHub charges only when a transaction actually completes through the platform.
         </p>
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {REVENUE_STREAMS.map(({ icon: Icon, title, body }) => (

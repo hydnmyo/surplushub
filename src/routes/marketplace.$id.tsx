@@ -263,8 +263,7 @@ function ListingDetail() {
                     </Badge>
                     <p className="pt-2 text-xs text-muted-foreground">
                       At pickup, the seller scans this QR code or both parties confirm the
-                      transaction ID. Buyer and seller settle payment directly — integrated payment
-                      and escrow can be introduced in a future phase.
+                      transaction ID.
                     </p>
                   </div>
                 </div>

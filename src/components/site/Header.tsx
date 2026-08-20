@@ -154,9 +154,14 @@ export function Header() {
               </Button>
             </>
           ) : currentUser ? (
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              Sign Out
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/orders">My Orders</Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -273,9 +278,16 @@ export function Header() {
                 </Button>
               </>
             ) : currentUser ? (
-              <Button size="sm" variant="ghost" onClick={handleSignOut}>
-                Sign Out
-              </Button>
+              <>
+                <Button size="sm" variant="ghost" asChild>
+                  <Link to="/orders" onClick={closeMobileNavigation}>
+                    My Orders
+                  </Link>
+                </Button>
+                <Button size="sm" variant="ghost" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              </>
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild>
