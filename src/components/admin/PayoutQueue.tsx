@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatMMK } from "@/lib/data";
-import { payoutQueue, type Order } from "@/lib/orders";
+import { orderLabel, payoutQueue, type Order } from "@/lib/orders";
 
 function PayoutCard({
   order,
@@ -39,7 +39,7 @@ function PayoutCard({
             <Badge variant="warning">Payout pending</Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {order.id} · {order.listingTitle}
+            {orderLabel(order)} · {order.listingTitle}
           </p>
         </div>
         <div className="text-right">
@@ -83,14 +83,18 @@ export function PayoutQueue() {
   const { orders, updateOrder } = useOrders();
   const pendingPayouts = payoutQueue(orders);
 
-  const recordPayout = (order: Order, reference: string) => {
+  const recordPayout = async (order: Order, reference: string) => {
     const paidAt = new Date().toISOString();
-    updateOrder(order.id, {
-      payoutStatus: "PAID",
-      payoutRef: reference,
-      payoutAt: paidAt,
-    });
-    toast.success(`Payout recorded for ${order.sellerName}`);
+    try {
+      await updateOrder(order.id, {
+        payoutStatus: "PAID",
+        payoutRef: reference,
+        payoutAt: paidAt,
+      });
+      toast.success(`Payout recorded for ${order.sellerName}`);
+    } catch {
+      toast.error("Could not record the payout. Try again.");
+    }
   };
 
   return (
