@@ -6,15 +6,15 @@ import { MMQRPaymentPanel } from "@/components/payments/MMQRPaymentPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useOrders } from "@/components/orders/OrderProvider";
-import { calculateOrderTotals } from "@/lib/fees";
 import { canTransition } from "@/lib/orders";
 import { formatMMK } from "@/lib/data";
 
 /**
- * SEED STUB — owned by Track B (checkout + MMQR payment).
+ * Checkout — the buyer pays here, and both sides see exactly what they get.
  *
- * Build the itemised buyer/seller breakdown with <FeeBreakdown>, the MMQR panel,
- * and a callback-shaped markPaid handler here. Do not add other route files.
+ * Payment is confirmed through markPaid(), which is shaped like the provider
+ * callback a real MMQR integration would call. The demo button walks the same
+ * code path deliberately: no screenshot upload, no manual admin confirmation.
  */
 
 export const Route = createFileRoute("/checkout/$orderId")({
@@ -78,11 +78,10 @@ function Checkout() {
     );
   }
 
-  const totals = calculateOrderTotals({
-    materialPrice: order.totals.materialPrice,
-    deliveryFee: order.totals.deliveryFee,
-    tax: order.totals.tax,
-  });
+  // Totals are locked when the quote is accepted. Recalculating here would re-price
+  // an agreed deal if the fee rates ever change, which is exactly what the price
+  // lock exists to prevent.
+  const totals = order.totals;
 
   if (order.status !== "PENDING_PAYMENT") {
     return (
