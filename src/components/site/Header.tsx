@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "./Logo";
 import { BUYER_NOTIFICATIONS, SELLER_NOTIFICATIONS } from "@/lib/data";
+import { orderNotificationsFor } from "@/lib/orderNotifications";
+import { useOrders } from "@/components/orders/OrderProvider";
 import { MessengerButton } from "@/components/messenger/MessengerButton";
 
 const NAV = [
@@ -37,7 +39,14 @@ export function Header() {
   const aboutCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isBusiness = currentUser?.role === "business";
   const isAdmin = currentUser?.role === "admin";
-  const notifications = isBusiness ? SELLER_NOTIFICATIONS : BUYER_NOTIFICATIONS;
+  const { orders } = useOrders();
+  const orderNotifications = orderNotificationsFor(currentUser, orders);
+  const notifications =
+    orderNotifications.length > 0
+      ? orderNotifications
+      : isBusiness
+        ? SELLER_NOTIFICATIONS
+        : BUYER_NOTIFICATIONS;
 
   const showAboutMenu = () => {
     if (aboutCloseTimer.current) clearTimeout(aboutCloseTimer.current);
