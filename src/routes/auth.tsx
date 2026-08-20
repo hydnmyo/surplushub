@@ -11,6 +11,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { CURRENT_USER } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
+const MOCK_REGISTRATION_KEY = "surplushub.mock-business-registration.v1";
+
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -44,6 +46,34 @@ function AuthPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
+  const createMockUser = () => ({
+    ...CURRENT_USER,
+    name: contactPerson || signInEmail || email || CURRENT_USER.name,
+    businessName: companyName || CURRENT_USER.businessName,
+  });
+
+  const persistMockRegistration = () => {
+    const mockBusiness = {
+      companyName: companyName || CURRENT_USER.businessName,
+      industry,
+      location,
+      contactPerson: contactPerson || CURRENT_USER.name,
+      email: email || signInEmail,
+      phone,
+      createdAt: new Date().toISOString(),
+      mode: "local-dev-fallback",
+    };
+
+    window.localStorage.setItem(MOCK_REGISTRATION_KEY, JSON.stringify(mockBusiness));
+  };
+
+  const finishWithMockSession = (message: string) => {
+    persistMockRegistration();
+    signIn(createMockUser());
+    toast.success(message);
+    void navigate({ to: "/dashboard", replace: true });
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -60,7 +90,12 @@ function AuthPage() {
       toast.success("Signed in successfully");
       void navigate({ to: "/dashboard", replace: true });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to sign in");
+      if (isNetworkOrCorsError(error)) {
+        console.error("Supabase sign-in failed; using local mock session fallback.", error);
+        finishWithMockSession("Signed in locally. Supabase is unreachable in this environment.");
+      } else {
+        toast.error(error instanceof Error ? error.message : "Unable to sign in");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +131,12 @@ function AuthPage() {
       toast.success("Business registered. Verification is pending.");
       void navigate({ to: "/dashboard", replace: true });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to create account");
+      if (isNetworkOrCorsError(error)) {
+        console.error("Supabase registration failed; storing mock business locally.", error);
+        finishWithMockSession("Business registered locally. Supabase is unreachable right now.");
+      } else {
+        toast.error(error instanceof Error ? error.message : "Unable to create account");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -194,6 +234,11 @@ function AuthPage() {
       </Tabs>
     </div>
   );
+}
+
+function isNetworkOrCorsError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /network|cors|failed to fetch|load failed|fetch/i.test(message);
 }
 
 function F({

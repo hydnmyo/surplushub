@@ -1,12 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/surplushub-logo.jpg.asset.json";
+
+const LOGO_SRC = "/favicon.png";
 
 export function Logo({ onDark = false, className }: { onDark?: boolean; className?: string }) {
   return (
     <Link to="/" className={cn("group flex items-center gap-2.5", className)}>
-      <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-white transition-transform group-hover:scale-105">
-        <img src={logoAsset.url} alt="SurplusHub logo" className="size-9 object-contain" />
+      <span className="flex h-8 w-8 items-center justify-center bg-transparent transition-transform group-hover:scale-105">
+        <img
+          src={LOGO_SRC}
+          alt="SurplusHub logo"
+          className="h-8 w-8 bg-transparent object-contain"
+        />
       </span>
       <span className="leading-tight">
         <span

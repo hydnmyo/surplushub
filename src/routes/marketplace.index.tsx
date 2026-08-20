@@ -19,6 +19,7 @@ import {
   BUSINESSES,
   CATEGORIES,
   CONDITIONS,
+  LISTINGS,
   LOCATIONS,
   MATERIAL_TYPES,
   type CategoryId,
@@ -26,7 +27,6 @@ import {
   type Listing,
   type MaterialType,
 } from "@/lib/data";
-import { MARKETPLACE_LISTINGS } from "@/lib/marketplace-data";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/marketplace/")({
@@ -138,7 +138,7 @@ function toListing(row: ListingRow): Listing {
 function Marketplace() {
   const { category } = Route.useSearch();
   const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>(category ?? "all");
   const [type, setType] = useState<string>("all");
@@ -156,7 +156,7 @@ function Marketplace() {
     let cancelled = false;
 
     async function fetchListings() {
-      setLoading(true);
+      setIsLoading(true);
 
       try {
         let query = supabase
@@ -203,6 +203,9 @@ function Marketplace() {
 
         const { data, error } = await query;
         if (error) throw error;
+        if (!data || data.length === 0) {
+          throw new Error("Supabase returned no marketplace listings; using mock data fallback.");
+        }
 
         let next = ((data ?? []) as unknown as ListingRow[]).map(toListing);
 
@@ -225,11 +228,14 @@ function Marketplace() {
 
         if (!cancelled) setListings(next);
       } catch (error) {
-        console.error("Unable to fetch marketplace listings from Supabase", error);
-        const fallback = MARKETPLACE_LISTINGS.filter((listing) => listing.status !== "Hidden");
+        console.error(
+          "Unable to fetch marketplace listings from Supabase; using mock data fallback.",
+          error,
+        );
+        const fallback = LISTINGS.filter((listing) => listing.status !== "Hidden");
         if (!cancelled) setListings(fallback);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
 
@@ -373,7 +379,7 @@ function Marketplace() {
             )}
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="surface-card p-10 text-center text-muted-foreground">
               Loading marketplace items...
             </div>
