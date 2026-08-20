@@ -19,14 +19,12 @@ import {
   BUSINESSES,
   CATEGORIES,
   CONDITIONS,
+  LISTINGS,
   LOCATIONS,
   MATERIAL_TYPES,
   type CategoryId,
-  type Condition,
   type Listing,
-  type MaterialType,
 } from "@/lib/data";
-import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/marketplace/")({
   validateSearch: (s: Record<string, unknown>): { category?: CategoryId } =>
@@ -59,104 +57,108 @@ const SORTS = [
   "Most Popular",
 ] as const;
 
-type ListingRow = {
-  id: string;
-  title: string;
-  category: CategoryId;
-  material_type: MaterialType;
-  condition: Condition;
-  composition: string;
-  quantity: number;
-  unit: string;
-  price: number | null;
-  price_unit: string;
-  min_order: string;
-  location: string;
-  available_from: string;
-  seller_id: string;
-  requires_processing: boolean;
-  pickup_available: boolean;
-  featured: boolean;
-  views: number;
-  inquiries: number;
-  popularity: number;
-  status: Listing["status"];
-  description: string;
-  uses: string[];
-  created_at: string;
-  businesses?: {
-    id: string;
-    name: string;
-    verified: boolean;
-    rating: number;
-  } | null;
+const ORIGINAL_LISTINGS = LISTINGS;
+const DEFAULT_MAX_PRICE = 50000;
+
+type MarketplaceFilters = {
+  q: string;
+  cat: string;
+  type: string;
+  cond: string;
+  loc: string;
+  sort: string;
+  maxPrice: number;
+  minQty: number;
+  minRating: string;
+  verifiedOnly: boolean;
+  pickupOnly: boolean;
+  processing: boolean;
 };
 
-function sellerIdForCard(row: ListingRow) {
-  const seller = BUSINESSES.find(
-    (business) => business.id === row.seller_id || business.name === row.businesses?.name,
-  );
+function filterListings(filters: MarketplaceFilters) {
+  const search = filters.q.trim().toLowerCase();
 
-  return seller?.id ?? row.seller_id;
+  let next = ORIGINAL_LISTINGS.filter((listing) => {
+    const seller = BUSINESSES.find((business) => business.id === listing.sellerId);
+    const searchableText = [
+      listing.title,
+      listing.composition,
+      listing.description,
+      listing.materialType,
+      listing.condition,
+      listing.category,
+      listing.location,
+      seller?.name,
+      seller?.industry,
+      ...listing.uses,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (search && !searchableText.includes(search)) return false;
+    if (filters.cat !== "all" && listing.category !== filters.cat) return false;
+    if (filters.type !== "all" && listing.materialType !== filters.type) return false;
+    if (filters.cond !== "all" && listing.condition !== filters.cond) return false;
+    if (filters.loc !== "all" && listing.location !== filters.loc) return false;
+    if (filters.pickupOnly && !listing.pickupAvailable) return false;
+    if (filters.processing && !listing.requiresProcessing) return false;
+    if (listing.price !== null && listing.price > filters.maxPrice) return false;
+    if (listing.quantity < filters.minQty) return false;
+    if (filters.minRating !== "all" && (seller?.rating ?? 0) < Number(filters.minRating)) {
+      return false;
+    }
+    if (filters.verifiedOnly && !seller?.verified) return false;
+
+    return true;
+  });
+
+  switch (filters.sort) {
+    case "Newest":
+      next = [...next].sort((a, b) => a.postedDaysAgo - b.postedDaysAgo);
+      break;
+    case "Price Low to High":
+      next = [...next].sort((a, b) => priceForSort(a) - priceForSort(b));
+      break;
+    case "Price High to Low":
+      next = [...next].sort((a, b) => priceForSort(b) - priceForSort(a));
+      break;
+    case "Highest Rated":
+      next = [...next].sort((a, b) => sellerRating(b) - sellerRating(a));
+      break;
+    case "Most Popular":
+      next = [...next].sort((a, b) => b.views - a.views);
+      break;
+    default:
+      next = [...next].sort(
+        (a, b) =>
+          Number(Boolean(b.featured)) - Number(Boolean(a.featured)) || b.popularity - a.popularity,
+      );
+      break;
+  }
+
+  return next;
 }
 
-function toListing(row: ListingRow): Listing {
-  const createdAt = row.created_at ? new Date(row.created_at).getTime() : Date.now();
-  const postedDaysAgo = Number.isFinite(createdAt)
-    ? Math.max(0, Math.floor((Date.now() - createdAt) / 86_400_000))
-    : 0;
-  const seller = row.businesses
-    ? {
-        id: row.businesses.id,
-        name: row.businesses.name,
-        verified: row.businesses.verified,
-        rating: Number(row.businesses.rating),
-      }
-    : null;
+function priceForSort(listing: Listing) {
+  return listing.price ?? Number.POSITIVE_INFINITY;
+}
 
-  const listing: Listing = {
-    id: row.id,
-    title: row.title,
-    category: row.category,
-    materialType: row.material_type,
-    condition: row.condition,
-    composition: row.composition,
-    quantity: Number(row.quantity),
-    unit: row.unit,
-    price: row.price === null ? null : Number(row.price),
-    priceUnit: row.price_unit,
-    minOrder: row.min_order,
-    location: row.location,
-    availableFrom: row.available_from,
-    sellerId: sellerIdForCard(row),
-    requiresProcessing: row.requires_processing,
-    pickupAvailable: row.pickup_available,
-    featured: row.featured,
-    views: row.views,
-    inquiries: row.inquiries,
-    popularity: row.popularity,
-    postedDaysAgo,
-    status: row.status,
-    description: row.description,
-    uses: row.uses ?? [],
-  };
-
-  if (seller) listing.seller = seller;
-
-  return listing;
+function sellerRating(listing: Listing) {
+  return BUSINESSES.find((business) => business.id === listing.sellerId)?.rating ?? 0;
 }
 
 function Marketplace() {
   const { category } = Route.useSearch();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [listings, setListings] = useState<Listing[]>(ORIGINAL_LISTINGS);
+  const [isLoading, setIsLoading] = useState(false);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string>(category ?? "all");
   const [type, setType] = useState<string>("all");
   const [cond, setCond] = useState<string>("all");
   const [loc, setLoc] = useState<string>("all");
   const [sort, setSort] = useState<string>("Recommended");
-  const [maxPrice, setMaxPrice] = useState(50000);
+  const [maxPrice, setMaxPrice] = useState(DEFAULT_MAX_PRICE);
   const [minQty, setMinQty] = useState(0);
   const [minRating, setMinRating] = useState<string>("all");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -164,100 +166,23 @@ function Marketplace() {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function fetchListings() {
-      setIsLoading(true);
-
-      try {
-        let query = supabase
-          .from("listings")
-          .select("*, businesses(id, name, verified, rating)")
-          .neq("status", "Hidden");
-
-        const search = q.trim();
-        if (search) {
-          const escaped = search.replaceAll("%", "\\%").replaceAll("_", "\\_");
-          query = query.or(
-            `title.ilike.%${escaped}%,composition.ilike.%${escaped}%,description.ilike.%${escaped}%`,
-          );
-        }
-
-        if (cat !== "all") query = query.eq("category", cat as CategoryId);
-        if (type !== "all") query = query.eq("material_type", type as MaterialType);
-        if (cond !== "all") query = query.eq("condition", cond as Condition);
-        if (loc !== "all") query = query.eq("location", loc);
-        if (pickupOnly) query = query.eq("pickup_available", true);
-        if (processing) query = query.eq("requires_processing", true);
-
-        query = query.lte("price", maxPrice).gte("quantity", minQty);
-
-        switch (sort) {
-          case "Newest":
-            query = query.order("created_at", { ascending: false });
-            break;
-          case "Price Low to High":
-            query = query.order("price", { ascending: true, nullsFirst: false });
-            break;
-          case "Price High to Low":
-            query = query.order("price", { ascending: false, nullsFirst: false });
-            break;
-          case "Most Popular":
-            query = query.order("views", { ascending: false });
-            break;
-          default:
-            query = query
-              .order("featured", { ascending: false })
-              .order("popularity", { ascending: false });
-            break;
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-
-        let next = ((data ?? []) as unknown as ListingRow[]).map(toListing);
-
-        if (minRating !== "all" || verifiedOnly || sort === "Highest Rated") {
-          next = next.filter((listing) => {
-            const seller =
-              listing.seller ?? BUSINESSES.find((business) => business.id === listing.sellerId);
-            if (minRating !== "all" && (seller?.rating ?? 0) < Number(minRating)) return false;
-            if (verifiedOnly && !seller?.verified) return false;
-            return true;
-          });
-        }
-
-        if (sort === "Highest Rated") {
-          next = [...next].sort((a, b) => {
-            const aRating =
-              a.seller?.rating ??
-              BUSINESSES.find((business) => business.id === a.sellerId)?.rating ??
-              0;
-            const bRating =
-              b.seller?.rating ??
-              BUSINESSES.find((business) => business.id === b.sellerId)?.rating ??
-              0;
-            return bRating - aRating;
-          });
-        }
-
-        if (!cancelled) setListings(next);
-      } catch (error) {
-        console.error("Unable to fetch marketplace listings from Supabase.", error);
-        if (!cancelled) setListings([]);
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    const handler = window.setTimeout(() => {
-      void fetchListings();
-    }, 300);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(handler);
-    };
+    setIsLoading(false);
+    setListings(
+      filterListings({
+        q,
+        cat,
+        type,
+        cond,
+        loc,
+        sort,
+        maxPrice,
+        minQty,
+        minRating,
+        verifiedOnly,
+        pickupOnly,
+        processing,
+      }),
+    );
   }, [
     q,
     cat,
@@ -408,12 +333,15 @@ function Marketplace() {
                   setType("all");
                   setCond("all");
                   setLoc("all");
-                  setMaxPrice(50000);
+                  setSort("Recommended");
+                  setMaxPrice(DEFAULT_MAX_PRICE);
                   setMinQty(0);
                   setMinRating("all");
                   setVerifiedOnly(false);
                   setPickupOnly(false);
                   setProcessing(false);
+                  setIsLoading(false);
+                  setListings(ORIGINAL_LISTINGS);
                 }}
               >
                 Reset filters
