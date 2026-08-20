@@ -11,7 +11,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { usePurchaseRequests } from "@/components/requests/PurchaseRequestProvider";
+import {
+  isQuoteLocked,
+  quotedTotal,
+  usePurchaseRequests,
+  type PurchaseRequest,
+} from "@/components/requests/PurchaseRequestProvider";
+import { calculateOrderTotals, sellerFeeLabel } from "@/lib/fees";
 import { EditBusinessProfileModal } from "@/components/business/EditBusinessProfileModal";
 import { useBusinessProfile } from "@/components/business/BusinessProfileProvider";
 import { SellerOrderList } from "@/components/orders/SellerOrderList";
@@ -222,61 +228,111 @@ function Dashboard() {
             </div>
           )}
           {businessRequests.map((request) => (
-            <div key={request.id} className="surface-card flex flex-wrap items-center gap-4 p-4">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">{request.listingTitle}</p>
-                <p className="text-xs text-muted-foreground">
-                  {request.buyerName} · {request.quantity.toLocaleString("en-US")} {request.unit} ·
-                  offered {formatMMK(request.offeredPrice)}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {request.fulfillment} · preferred {request.preferredDate || "Not specified"}
-                  {request.message ? ` · ${request.message}` : ""}
-                </p>
-              </div>
-              <Badge
-                variant={
-                  request.status === "Accepted"
-                    ? "verified"
-                    : request.status === "Pending"
-                      ? "warning"
-                      : "soft"
-                }
-              >
-                {request.status}
-              </Badge>
-              {(request.status === "Pending" || request.status === "Countered") && (
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      updateRequestStatus(request.id, "Accepted");
-                      toast.success("Request accepted");
-                    }}
-                  >
-                    Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      updateRequestStatus(request.id, "Countered");
-                      toast("Counter offer sent");
-                    }}
-                  >
-                    Counter
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      updateRequestStatus(request.id, "Rejected");
-                      toast("Request rejected");
-                    }}
-                  >
-                    Reject
-                  </Button>
+            <div key={request.id} className="surface-card p-4">
+              <div className="flex flex-wrap items-start gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold">{request.listingTitle}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {request.buyerName} · {request.quantity.toLocaleString("en-US")} {request.unit}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {request.fulfillment} · preferred {request.preferredDate || "Not specified"}
+                    {request.message ? ` · ${request.message}` : ""}
+                  </p>
                 </div>
+                <Badge
+                  variant={
+                    request.status === "Accepted"
+                      ? "verified"
+                      : request.status === "Pending"
+                        ? "warning"
+                        : "soft"
+                  }
+                >
+                  {isQuoteLocked(request) ? "Deal locked" : request.status}
+                </Badge>
+              </div>
+
+              <div className="mt-4 grid gap-3 rounded-md border border-border bg-secondary/40 p-3 text-xs sm:grid-cols-3">
+                <div>
+                  <p className="text-muted-foreground">Buyer offered</p>
+                  <p className="mt-0.5 font-medium">
+                    {formatMMK(request.offeredPrice)} / {request.unit}
+                  </p>
+                  <p className="text-muted-foreground">
+                    = {formatMMK(request.offeredPrice * request.quantity)}
+                  </p>
+                </div>
+                {request.counterUnitPrice !== undefined ? (
+                  <div>
+                    <p className="text-muted-foreground">You countered</p>
+                    <p className="mt-0.5 font-medium">
+                      {formatMMK(request.counterUnitPrice)} / {request.unit}
+                    </p>
+                    <p className="text-muted-foreground">
+                      = {formatMMK(request.counterUnitPrice * request.quantity)}
+                      {request.counterDeliveryFee
+                        ? ` + ${formatMMK(request.counterDeliveryFee)} delivery`
+                        : ""}
+                    </p>
+                  </div>
+                ) : null}
+                {isQuoteLocked(request) ? (
+                  <div>
+                    <p className="text-muted-foreground">Agreed — you receive</p>
+                    <p className="mt-0.5 font-semibold text-primary">
+                      {formatMMK(
+                        calculateOrderTotals({ materialPrice: quotedTotal(request) }).sellerNet,
+                      )}
+                    </p>
+                    <p className="text-muted-foreground">after {sellerFeeLabel} success fee</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-muted-foreground">You would receive</p>
+                    <p className="mt-0.5 font-medium">
+                      {formatMMK(
+                        calculateOrderTotals({ materialPrice: quotedTotal(request) }).sellerNet,
+                      )}
+                    </p>
+                    <p className="text-muted-foreground">after {sellerFeeLabel} success fee</p>
+                  </div>
+                )}
+              </div>
+
+              {isQuoteLocked(request) ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Buyer accepted at {formatMMK(request.agreedUnitPrice ?? 0)} / {request.unit}.
+                  Order {request.orderId} is awaiting payment — it appears in the Orders tab once
+                  paid.
+                </p>
+              ) : (
+                (request.status === "Pending" || request.status === "Countered") && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        updateRequestStatus(request.id, "Accepted");
+                        toast.success("Price accepted", {
+                          description: "The buyer can now pay through checkout.",
+                        });
+                      }}
+                    >
+                      Accept buyer price
+                    </Button>
+                    <CounterOfferDialog request={request} />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        updateRequestStatus(request.id, "Rejected");
+                        toast("Request rejected");
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                )
               )}
             </div>
           ))}
@@ -458,5 +514,119 @@ function FF({ label, placeholder, type }: { label: string; placeholder?: string;
       <Label>{label}</Label>
       <Input className="mt-1.5" placeholder={placeholder ?? ""} type={type ?? "text"} />
     </div>
+  );
+}
+
+/**
+ * Seller counter-offer. The seller quotes a unit price, and the line total plus
+ * their own net is shown live — a discount on a large order is a big number, and
+ * they should see what it costs them before sending it.
+ */
+function CounterOfferDialog({ request }: { request: PurchaseRequest }) {
+  const { counterRequest } = usePurchaseRequests();
+  const [open, setOpen] = useState(false);
+  const [unitPrice, setUnitPrice] = useState(
+    String(request.counterUnitPrice ?? request.offeredPrice),
+  );
+  const [deliveryFee, setDeliveryFee] = useState(String(request.counterDeliveryFee ?? 0));
+  const [note, setNote] = useState(request.counterNote ?? "");
+
+  const parsedUnitPrice = Math.max(0, Number(unitPrice) || 0);
+  const parsedDelivery = Math.max(0, Number(deliveryFee) || 0);
+  const materialPrice = parsedUnitPrice * request.quantity;
+  const totals = calculateOrderTotals({ materialPrice, deliveryFee: parsedDelivery });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          Counter
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Counter offer</DialogTitle>
+          <DialogDescription>
+            {request.buyerName} asked for {request.quantity.toLocaleString("en-US")} {request.unit}{" "}
+            at {formatMMK(request.offeredPrice)} per {request.unit}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Your price per {request.unit} (MMK)</Label>
+              <Input
+                className="mt-1.5"
+                inputMode="numeric"
+                value={unitPrice}
+                onChange={(event) => setUnitPrice(event.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Delivery (MMK)</Label>
+              <Input
+                className="mt-1.5"
+                inputMode="numeric"
+                value={deliveryFee}
+                onChange={(event) => setDeliveryFee(event.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <Label>Message to buyer</Label>
+            <Textarea
+              className="mt-1.5"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              placeholder="Best I can do at this volume — includes sorting and loading."
+            />
+          </div>
+
+          <div className="rounded-md border border-border bg-secondary/40 p-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                {request.quantity.toLocaleString("en-US")} {request.unit} ×{" "}
+                {formatMMK(parsedUnitPrice)}
+              </span>
+              <span className="font-medium tabular-nums">{formatMMK(materialPrice)}</span>
+            </div>
+            <div className="mt-1.5 flex justify-between">
+              <span className="text-muted-foreground">Success fee ({sellerFeeLabel})</span>
+              <span className="tabular-nums text-muted-foreground">
+                − {formatMMK(totals.sellerFee)}
+              </span>
+            </div>
+            <div className="mt-2 flex justify-between border-t border-border pt-2 font-semibold">
+              <span>You receive</span>
+              <span className="tabular-nums">{formatMMK(totals.sellerNet)}</span>
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Buyer pays {formatMMK(totals.buyerTotal)} including their service fee
+              {parsedDelivery > 0 ? " and delivery" : ""}. Delivery is never charged a fee.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            disabled={parsedUnitPrice <= 0}
+            onClick={() => {
+              counterRequest(request.id, {
+                unitPrice: parsedUnitPrice,
+                deliveryFee: parsedDelivery,
+                note: note.trim(),
+              });
+              setOpen(false);
+              toast.success("Counter offer sent", {
+                description: `${formatMMK(parsedUnitPrice)} per ${request.unit} — ${formatMMK(materialPrice)} total.`,
+              });
+            }}
+          >
+            Send counter offer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

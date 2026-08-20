@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   BadgeCheck,
@@ -16,7 +16,19 @@ import {
   Star,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { usePurchaseRequests } from "@/components/requests/PurchaseRequestProvider";
+import {
+  isQuoteLocked,
+  quotedDeliveryFee,
+  quotedTotal,
+  quotedUnitPrice,
+  usePurchaseRequests,
+  type PurchaseRequest,
+} from "@/components/requests/PurchaseRequestProvider";
+import { FeeBreakdown } from "@/components/orders/FeeBreakdown";
+import { useOrders } from "@/components/orders/OrderProvider";
+import { ORDER_FLOW, ORDER_STATUS_LABELS } from "@/lib/orders";
+import { calculateOrderTotals } from "@/lib/fees";
+import { DEMO_BUYER_ID } from "@/lib/messenger";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,11 +43,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { QrCode } from "@/components/site/QrCode";
 import { MaterialCard } from "@/components/site/MaterialCard";
 import {
   LISTINGS,
-  TX_FLOW,
   businessById,
   categoryImage,
   categoryName,
@@ -76,12 +86,13 @@ export const Route = createFileRoute("/marketplace/$id")({
 function ListingDetail() {
   const { listing } = Route.useLoaderData();
   const { currentUser } = useAuth();
-  const { addRequest } = usePurchaseRequests();
+  const { addRequest, requestForListing } = usePurchaseRequests();
+  const buyerId = currentUser?.role === "buyer" ? currentUser.id : DEMO_BUYER_ID;
+  const myRequest = requestForListing(listing.id, buyerId);
   const seller = businessById(listing.sellerId)!;
   const isOwnListing =
     currentUser?.role === "business" && currentUser.businessId === listing.sellerId;
   const [contactUnlocked, setContactUnlocked] = useState(false);
-  const [stage, setStage] = useState(0);
   const [qty, setQty] = useState(String(Math.min(listing.quantity, 100)));
   const [offeredPrice, setOfferedPrice] = useState(String(listing.price ?? 0));
   const [fulfillment, setFulfillment] = useState("Self pickup");
@@ -97,6 +108,7 @@ function ListingDetail() {
       listingId: listing.id,
       listingTitle: listing.title,
       sellerBusinessId: listing.sellerId,
+      buyerId,
       buyerName: currentUser?.businessName ?? currentUser?.name ?? "Marketplace Buyer",
       quantity: Number(qty) || 0,
       unit: listing.unit,
@@ -106,7 +118,6 @@ function ListingDetail() {
       preferredDate,
     });
     setContactUnlocked(true);
-    setStage(1);
     toast.success("Request to Buy sent", {
       description: `${seller.name} has been notified. Contact details are now unlocked.`,
     });
@@ -195,81 +206,7 @@ function ListingDetail() {
             </div>
           </section>
 
-          {!isOwnListing && (
-            <section className="surface-card mt-6 p-6">
-              <h2 className="font-display text-lg font-semibold">Transaction status</h2>
-              <ol className="mt-4 space-y-2.5">
-                {TX_FLOW.map((s, i) => (
-                  <li key={s} className="flex items-center gap-3 text-sm">
-                    <span
-                      className={
-                        i <= stage
-                          ? "flex size-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
-                          : "flex size-6 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-muted-foreground"
-                      }
-                    >
-                      {i + 1}
-                    </span>
-                    <span className={i <= stage ? "font-medium" : "text-muted-foreground"}>
-                      {s}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              {stage >= 1 && (
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setStage(Math.min(stage + 1, TX_FLOW.length - 1));
-                      toast.success("Transaction advanced", {
-                        description: TX_FLOW[Math.min(stage + 1, 7)],
-                      });
-                    }}
-                  >
-                    Advance demo step
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setStage(0)}>
-                    Reset
-                  </Button>
-                </div>
-              )}
-              {stage >= 4 && (
-                <div className="mt-6 grid gap-5 rounded-2xl border border-border bg-secondary/50 p-5 sm:grid-cols-[auto_1fr]">
-                  <div className="rounded-xl bg-card p-3">
-                    <QrCode value="TXN-20481" />
-                  </div>
-                  <div className="space-y-1.5 text-sm">
-                    <p className="font-display text-lg font-semibold">TXN-20481</p>
-                    <p>
-                      <span className="text-muted-foreground">Buyer:</span> ABC Products
-                    </p>
-                    <p>
-                      <span className="text-muted-foreground">Seller:</span> {seller.name}
-                    </p>
-                    <p>
-                      <span className="text-muted-foreground">Material:</span> {listing.title}
-                    </p>
-                    <p>
-                      <span className="text-muted-foreground">Quantity:</span> {qty} {listing.unit}
-                    </p>
-                    <p>
-                      <span className="text-muted-foreground">Total:</span>{" "}
-                      {(Number(qty || 0) * (listing.price ?? 0)).toLocaleString("en-US")} MMK
-                    </p>
-                    <Badge variant={stage >= 7 ? "verified" : "warning"} className="mt-2">
-                      {stage >= 7 ? "✓ Transaction Completed" : "Ready for Completion"}
-                    </Badge>
-                    <p className="pt-2 text-xs text-muted-foreground">
-                      At pickup, the seller scans this QR code or both parties confirm the
-                      transaction ID.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
+          {!isOwnListing && myRequest ? <OrderProgressSection request={myRequest} /> : null}
         </div>
 
         {/* Sidebar */}
@@ -314,10 +251,15 @@ function ListingDetail() {
               </div>
             ) : (
               <div className="mt-5 space-y-2">
+                {myRequest ? <QuotePanel request={myRequest} /> : null}
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="w-full" size="lg">
-                      Request to Buy
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      variant={myRequest ? "outline" : "default"}
+                    >
+                      {myRequest ? "Send another request" : "Request to Buy"}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -337,12 +279,20 @@ function ListingDetail() {
                         />
                       </div>
                       <div>
-                        <Label>Offered price (MMK)</Label>
+                        <Label>Offered price per {listing.unit} (MMK)</Label>
                         <Input
                           className="mt-1.5"
+                          inputMode="numeric"
                           value={offeredPrice}
                           onChange={(e) => setOfferedPrice(e.target.value)}
                         />
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                          {(Number(qty) || 0).toLocaleString("en-US")} {listing.unit} ×{" "}
+                          {priceOf(Number(offeredPrice) || 0)} ={" "}
+                          <span className="font-medium text-foreground">
+                            {priceOf((Number(qty) || 0) * (Number(offeredPrice) || 0))}
+                          </span>
+                        </p>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -483,5 +433,186 @@ function ListingDetail() {
         </section>
       )}
     </div>
+  );
+}
+
+/**
+ * The buyer's side of the negotiation: what has been offered, what the seller
+ * countered, and the one button that turns a quote into a priced order.
+ *
+ * Accepting locks the price. Everything downstream — checkout, payout, the
+ * platform's own revenue — is computed from the totals captured at this moment.
+ */
+function QuotePanel({ request }: { request: PurchaseRequest }) {
+  const navigate = useNavigate();
+  const { acceptQuote } = usePurchaseRequests();
+  const locked = isQuoteLocked(request);
+  const unitPrice = quotedUnitPrice(request);
+  const totals = calculateOrderTotals({
+    materialPrice: quotedTotal(request),
+    deliveryFee: quotedDeliveryFee(request),
+  });
+
+  if (request.status === "Rejected") {
+    return (
+      <div className="rounded-xl border border-border bg-secondary/50 p-4">
+        <p className="text-sm font-semibold">Request declined</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {request.buyerName} asked for {request.quantity.toLocaleString("en-US")} {request.unit},
+          but the seller declined. You can send a new request with different terms.
+        </p>
+      </div>
+    );
+  }
+
+  if (locked) {
+    return (
+      <div className="rounded-xl border border-primary/25 bg-mint p-4">
+        <div className="flex items-center gap-2">
+          <Handshake className="size-4 text-primary" aria-hidden="true" />
+          <p className="text-sm font-semibold text-accent-foreground">Price agreed</p>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {request.quantity.toLocaleString("en-US")} {request.unit} at {priceOf(unitPrice)} per{" "}
+          {request.unit}. This price is locked for order {request.orderId}.
+        </p>
+        <Button className="mt-4 w-full" asChild>
+          <Link to="/checkout/$orderId" params={{ orderId: request.orderId ?? "" }}>
+            Go to checkout
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const awaitingSeller = request.status === "Pending";
+
+  return (
+    <div className="rounded-xl border border-border bg-secondary/50 p-4">
+      <p className="text-sm font-semibold">
+        {awaitingSeller ? "Request sent" : "Seller responded"}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        You asked for {request.quantity.toLocaleString("en-US")} {request.unit} at{" "}
+        {priceOf(request.offeredPrice)} per {request.unit}.
+      </p>
+
+      {request.counterUnitPrice !== undefined ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Seller countered at{" "}
+          <span className="font-medium text-foreground">{priceOf(request.counterUnitPrice)}</span>{" "}
+          per {request.unit}.{request.counterNote ? ` "${request.counterNote}"` : ""}
+        </p>
+      ) : null}
+
+      {awaitingSeller ? (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Waiting for the seller to accept or counter your price.
+        </p>
+      ) : (
+        <>
+          <div className="mt-4 rounded-lg border border-border bg-background p-3">
+            <FeeBreakdown totals={totals} variant="buyer" />
+          </div>
+          <Button
+            className="mt-4 w-full"
+            size="lg"
+            onClick={() => {
+              const order = acceptQuote(request.id);
+              if (!order) {
+                toast.error("This quote can no longer be accepted.");
+                return;
+              }
+              toast.success("Price agreed", {
+                description: `Order ${order.id} created. Complete payment to confirm.`,
+              });
+              void navigate({ to: "/checkout/$orderId", params: { orderId: order.id } });
+            }}
+          >
+            Accept {priceOf(totals.buyerTotal)} and check out
+          </Button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Accepting locks this price. It cannot be renegotiated afterwards.
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+const priceOf = (amount: number) => `${amount.toLocaleString("en-US")} MMK`;
+
+/**
+ * Where this deal actually stands, driven by the real order lifecycle rather
+ * than a demo counter. Replaces the old TX_FLOW pickup-and-scan simulation,
+ * which described a handoff model the platform no longer uses.
+ */
+function OrderProgressSection({ request }: { request: PurchaseRequest }) {
+  const { getOrder } = useOrders();
+  const order = request.orderId ? getOrder(request.orderId) : undefined;
+
+  return (
+    <section className="surface-card mt-6 p-6">
+      <h2 className="font-display text-lg font-semibold">Transaction status</h2>
+
+      {order ? (
+        <>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Order {order.id} · {ORDER_STATUS_LABELS[order.status]}
+          </p>
+          <ol className="mt-4 space-y-2.5">
+            {ORDER_FLOW.map((status) => {
+              const position = ORDER_FLOW.indexOf(order.status);
+              const index = ORDER_FLOW.indexOf(status);
+              const reached = position >= 0 && index <= position;
+              return (
+                <li key={status} className="flex items-center gap-3 text-sm">
+                  <span
+                    className={
+                      reached
+                        ? "flex size-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+                        : "flex size-6 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-muted-foreground"
+                    }
+                  >
+                    {index + 1}
+                  </span>
+                  <span className={reached ? "font-medium" : "text-muted-foreground"}>
+                    {ORDER_STATUS_LABELS[status]}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+          <Button className="mt-5" variant="outline" asChild>
+            <Link to="/orders/$id" params={{ id: order.id }}>
+              View order
+            </Link>
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your request is with the seller. Once you agree on a price, the deal becomes a tracked
+            order you pay for through the platform.
+          </p>
+          <ol className="mt-4 space-y-2.5 text-sm text-muted-foreground">
+            {[
+              "Agree a price with the seller",
+              "Pay securely by MMQR",
+              "Seller prepares and ships",
+              "Inspect on delivery, then accept",
+              "Seller is paid out",
+            ].map((step, index) => (
+              <li key={step} className="flex items-center gap-3">
+                <span className="flex size-6 items-center justify-center rounded-full bg-secondary text-xs font-semibold">
+                  {index + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </section>
   );
 }
