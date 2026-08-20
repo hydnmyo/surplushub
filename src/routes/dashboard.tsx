@@ -46,7 +46,6 @@ import {
   formatMMK,
   priceLabel,
 } from "@/lib/data";
-import { CURRENT_USER } from "@/lib/auth";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -74,9 +73,7 @@ function Dashboard() {
   const { currentUser, isReady } = useAuth();
   const { requests, updateRequestStatus } = usePurchaseRequests();
   const businessId =
-    currentUser?.role === "business" && currentUser.businessId
-      ? currentUser.businessId
-      : CURRENT_USER.businessId;
+    currentUser?.role === "business" && currentUser.businessId ? currentUser.businessId : "";
   const business = useBusinessProfile(businessId);
   const myListings = LISTINGS.filter((listing) => listing.sellerId === businessId);
   const businessTransactions = TRANSACTIONS.filter(
