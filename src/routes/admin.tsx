@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BUSINESSES, LISTINGS, PLATFORM_STATS, TRANSACTIONS } from "@/lib/data";
 import { PayoutQueue } from "@/components/admin/PayoutQueue";
 import { RevenueSummary } from "@/components/admin/RevenueSummary";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -28,6 +30,16 @@ export const Route = createFileRoute("/admin")({
 });
 
 function Admin() {
+  const navigate = useNavigate();
+  const { currentUser, isReady } = useAuth();
+
+  useEffect(() => {
+    if (!isReady || currentUser?.role === "admin") return;
+    void navigate({ to: currentUser ? "/marketplace" : "/auth", replace: true });
+  }, [currentUser, isReady, navigate]);
+
+  if (!isReady || currentUser?.role !== "admin") return null;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <h1 className="font-display text-3xl font-semibold">Admin Console</h1>

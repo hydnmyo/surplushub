@@ -207,7 +207,7 @@ function MessengerPage() {
           Log in to view buyer and seller conversations.
         </p>
         <Button className="mt-5" asChild>
-          <Link to="/auth" search={{ redirect: undefined }}>
+          <Link to="/auth" search={{ redirect: undefined, tab: undefined }}>
             Login
           </Link>
         </Button>
