@@ -5,7 +5,13 @@ import { useOrders } from "@/components/orders/OrderProvider";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { categoryName, formatMMK } from "@/lib/data";
-import { ORDER_STATUS_LABELS, ordersForBuyer, type Order, type OrderStatus } from "@/lib/orders";
+import {
+  ORDER_STATUS_LABELS,
+  orderLabel,
+  ordersForBuyer,
+  type Order,
+  type OrderStatus,
+} from "@/lib/orders";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -23,7 +29,7 @@ export const Route = createFileRoute("/orders/")({
 
 function Orders() {
   const { currentUser } = useAuth();
-  const { orders } = useOrders();
+  const { orders, isLoading } = useOrders();
   const buyerOrders =
     currentUser?.role === "buyer" ? ordersForBuyer(orders, currentUser.id) : orders;
   const newestOrders = [...buyerOrders].sort(
@@ -47,7 +53,9 @@ function Orders() {
       </div>
 
       <div className="mt-6 space-y-3">
-        {newestOrders.length === 0 ? (
+        {isLoading ? (
+          <div className="surface-card p-6 text-sm text-muted-foreground">Loading orders…</div>
+        ) : newestOrders.length === 0 ? (
           <div className="surface-card p-6 text-sm text-muted-foreground">No buyer orders yet.</div>
         ) : null}
 
@@ -68,8 +76,8 @@ function OrderRow({ order }: { order: Order }) {
           <StatusBadge status={order.status} />
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          {order.id} - {categoryName(order.category)} - {order.quantity.toLocaleString("en-US")}{" "}
-          {order.unit} - seller {order.sellerName}
+          {orderLabel(order)} - {categoryName(order.category)} -{" "}
+          {order.quantity.toLocaleString("en-US")} {order.unit} - seller {order.sellerName}
         </p>
       </div>
       <div className="text-right">

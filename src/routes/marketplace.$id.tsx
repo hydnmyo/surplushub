@@ -26,9 +26,9 @@ import {
 } from "@/components/requests/PurchaseRequestProvider";
 import { FeeBreakdown } from "@/components/orders/FeeBreakdown";
 import { useOrders } from "@/components/orders/OrderProvider";
-import { ORDER_FLOW, ORDER_STATUS_LABELS } from "@/lib/orders";
+import { ORDER_FLOW, ORDER_STATUS_LABELS, orderLabel } from "@/lib/orders";
 import { calculateOrderTotals } from "@/lib/fees";
-import { DEMO_BUYER_ID } from "@/lib/messenger";
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,9 +85,10 @@ export const Route = createFileRoute("/marketplace/$id")({
 
 function ListingDetail() {
   const { listing } = Route.useLoaderData();
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { addRequest, requestForListing } = usePurchaseRequests();
-  const buyerId = currentUser?.role === "buyer" ? currentUser.id : DEMO_BUYER_ID;
+  const buyerId = currentUser?.id ?? "";
   const myRequest = requestForListing(listing.id, buyerId);
   const seller = businessById(listing.sellerId)!;
   const isOwnListing =
@@ -103,24 +104,54 @@ function ListingDetail() {
   ).slice(0, 3);
   const img = categoryImage(listing.category);
 
-  const submitRequest = () => {
-    addRequest({
-      listingId: listing.id,
-      listingTitle: listing.title,
-      sellerBusinessId: listing.sellerId,
-      buyerId,
-      buyerName: currentUser?.businessName ?? currentUser?.name ?? "Marketplace Buyer",
-      quantity: Number(qty) || 0,
-      unit: listing.unit,
-      offeredPrice: Number(offeredPrice) || 0,
-      message: requestMessage.trim(),
-      fulfillment,
-      preferredDate,
-    });
-    setContactUnlocked(true);
-    toast.success("Request to Buy sent", {
-      description: `${seller.name} has been notified. Contact details are now unlocked.`,
-    });
+  const [sendingRequest, setSendingRequest] = useState(false);
+
+  const submitRequest = async () => {
+    if (!currentUser) {
+      toast.error("Sign in to send a request.");
+      void navigate({ to: "/auth", search: { redirect: undefined, tab: "buyer" } });
+      return;
+    }
+
+    setSendingRequest(true);
+    try {
+      // The local listing catalog and the real Supabase listings table share
+      // the same ids, but only the Supabase row's seller_id is the real
+      // business uuid that purchase_requests needs — local data.ts's
+      // sellerId is a demo slug and would fail the foreign key.
+      const { data: realListing } = await supabase
+        .from("listings")
+        .select("seller_id")
+        .eq("id", listing.id)
+        .maybeSingle();
+
+      if (!realListing) {
+        toast.error("This listing isn't available for requests right now.");
+        return;
+      }
+
+      await addRequest({
+        listingId: listing.id,
+        listingTitle: listing.title,
+        sellerBusinessId: realListing.seller_id,
+        buyerId,
+        buyerName: currentUser.businessName ?? currentUser.name,
+        quantity: Number(qty) || 0,
+        unit: listing.unit,
+        offeredPrice: Number(offeredPrice) || 0,
+        message: requestMessage.trim(),
+        fulfillment,
+        preferredDate,
+      });
+      setContactUnlocked(true);
+      toast.success("Request to Buy sent", {
+        description: `${seller.name} has been notified. Contact details are now unlocked.`,
+      });
+    } catch {
+      toast.error("Could not send the request. Try again.");
+    } finally {
+      setSendingRequest(false);
+    }
   };
 
   return (
@@ -324,7 +355,9 @@ function ListingDetail() {
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button onClick={submitRequest}>Send Request</Button>
+                      <Button onClick={submitRequest} disabled={sendingRequest}>
+                        {sendingRequest ? "Sending…" : "Send Request"}
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -446,6 +479,7 @@ function ListingDetail() {
 function QuotePanel({ request }: { request: PurchaseRequest }) {
   const navigate = useNavigate();
   const { acceptQuote } = usePurchaseRequests();
+  const [accepting, setAccepting] = useState(false);
   const locked = isQuoteLocked(request);
   const unitPrice = quotedUnitPrice(request);
   const totals = calculateOrderTotals({
@@ -474,7 +508,7 @@ function QuotePanel({ request }: { request: PurchaseRequest }) {
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
           {request.quantity.toLocaleString("en-US")} {request.unit} at {priceOf(unitPrice)} per{" "}
-          {request.unit}. This price is locked for order {request.orderId}.
+          {request.unit}. This price is locked and can no longer be renegotiated.
         </p>
         <Button className="mt-4 w-full" asChild>
           <Link to="/checkout/$orderId" params={{ orderId: request.orderId ?? "" }}>
@@ -517,19 +551,27 @@ function QuotePanel({ request }: { request: PurchaseRequest }) {
           <Button
             className="mt-4 w-full"
             size="lg"
-            onClick={() => {
-              const order = acceptQuote(request.id);
-              if (!order) {
-                toast.error("This quote can no longer be accepted.");
-                return;
+            disabled={accepting}
+            onClick={async () => {
+              setAccepting(true);
+              try {
+                const order = await acceptQuote(request.id);
+                if (!order) {
+                  toast.error("This quote can no longer be accepted.");
+                  return;
+                }
+                toast.success("Price agreed", {
+                  description: `Order ${orderLabel(order)} created. Complete payment to confirm.`,
+                });
+                void navigate({ to: "/checkout/$orderId", params: { orderId: order.id } });
+              } catch {
+                toast.error("Could not accept this quote. Try again.");
+              } finally {
+                setAccepting(false);
               }
-              toast.success("Price agreed", {
-                description: `Order ${order.id} created. Complete payment to confirm.`,
-              });
-              void navigate({ to: "/checkout/$orderId", params: { orderId: order.id } });
             }}
           >
-            Accept {priceOf(totals.buyerTotal)} and check out
+            {accepting ? "Accepting…" : `Accept ${priceOf(totals.buyerTotal)} and check out`}
           </Button>
           <p className="mt-2 text-center text-xs text-muted-foreground">
             Accepting locks this price. It cannot be renegotiated afterwards.
@@ -558,7 +600,7 @@ function OrderProgressSection({ request }: { request: PurchaseRequest }) {
       {order ? (
         <>
           <p className="mt-1 text-sm text-muted-foreground">
-            Order {order.id} · {ORDER_STATUS_LABELS[order.status]}
+            Order {orderLabel(order)} · {ORDER_STATUS_LABELS[order.status]}
           </p>
           <ol className="mt-4 space-y-2.5">
             {ORDER_FLOW.map((status) => {

@@ -6,7 +6,7 @@ import { MMQRPaymentPanel } from "@/components/payments/MMQRPaymentPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useOrders } from "@/components/orders/OrderProvider";
-import { canTransition } from "@/lib/orders";
+import { canTransition, orderLabel } from "@/lib/orders";
 import { formatMMK } from "@/lib/data";
 
 /**
@@ -33,10 +33,10 @@ export const Route = createFileRoute("/checkout/$orderId")({
 
 function Checkout() {
   const { orderId } = Route.useParams();
-  const { getOrder, updateOrder } = useOrders();
+  const { getOrder, updateOrder, isLoading } = useOrders();
   const order = getOrder(orderId);
 
-  const markPaid = (id: string, paymentRef: string) => {
+  const markPaid = async (id: string, paymentRef: string) => {
     const current = getOrder(id);
 
     if (!current) {
@@ -49,14 +49,28 @@ function Checkout() {
       return;
     }
 
-    updateOrder(id, {
-      status: "PAID",
-      paymentStatus: "PAID",
-      paymentRef,
-      paidAt: new Date().toISOString(),
-    });
-    toast.success("Provider callback received. Payment marked as paid.");
+    try {
+      await updateOrder(id, {
+        status: "PAID",
+        paymentStatus: "PAID",
+        paymentRef,
+        paidAt: new Date().toISOString(),
+      });
+      toast.success("Provider callback received. Payment marked as paid.");
+    } catch {
+      toast.error("Could not confirm the payment. Try again.");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        <div className="surface-card p-8 text-center text-sm text-muted-foreground">
+          Loading order…
+        </div>
+      </main>
+    );
+  }
 
   if (!order) {
     return (
@@ -91,7 +105,7 @@ function Checkout() {
             <CheckCircle2 className="size-3.5" aria-hidden="true" />
             Payment already processed
           </Badge>
-          <h1 className="mt-4 font-display text-3xl font-semibold">Order {order.id}</h1>
+          <h1 className="mt-4 font-display text-3xl font-semibold">Order {orderLabel(order)}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             This order is already past checkout. Current status:{" "}
             <span className="font-medium text-foreground">{order.status}</span>.
@@ -126,7 +140,7 @@ function Checkout() {
           </Badge>
           <h1 className="mt-3 font-display text-3xl font-semibold">Checkout</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Order <span className="font-medium text-foreground">{order.id}</span> ·{" "}
+            Order <span className="font-medium text-foreground">{orderLabel(order)}</span> ·{" "}
             {order.listingTitle}
           </p>
         </div>

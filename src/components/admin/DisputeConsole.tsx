@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { formatMMK } from "@/lib/data";
-import { disputedOrders, type Order } from "@/lib/orders";
+import { disputedOrders, orderLabel, type Order } from "@/lib/orders";
 
 /**
  * Where an admin settles a "Report a problem" case.
@@ -54,7 +54,7 @@ export function DisputeConsole() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
-                {order.id} · {order.buyerName} ↔ {order.sellerName} ·{" "}
+                {orderLabel(order)} · {order.buyerName} ↔ {order.sellerName} ·{" "}
                 {order.quantity.toLocaleString("en-US")} {order.unit}
               </p>
             </div>
@@ -85,7 +85,7 @@ function ResolveDisputeDialog({ order }: { order: Order }) {
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
 
-  const resolve = (outcome: "release" | "refund") => {
+  const resolve = async (outcome: "release" | "refund") => {
     const trimmedNote = note.trim();
     if (!trimmedNote) {
       toast.error("Add a short note explaining the decision before resolving.");
@@ -94,27 +94,32 @@ function ResolveDisputeDialog({ order }: { order: Order }) {
 
     const now = new Date().toISOString();
 
-    if (outcome === "release") {
-      updateOrder(order.id, {
-        status: "COMPLETED",
-        acceptedAt: order.acceptedAt ?? now,
-        payoutStatus: "PENDING",
-        disputeResolution: trimmedNote,
-        disputeResolvedAt: now,
-      });
-      toast.success("Payout released to seller", {
-        description: `${order.id} moved to the payout queue.`,
-      });
-    } else {
-      updateOrder(order.id, {
-        status: "REFUNDED",
-        payoutStatus: "NOT_ELIGIBLE",
-        disputeResolution: trimmedNote,
-        disputeResolvedAt: now,
-      });
-      toast.success("Buyer refunded", {
-        description: `${order.id} closed with no seller payout.`,
-      });
+    try {
+      if (outcome === "release") {
+        await updateOrder(order.id, {
+          status: "COMPLETED",
+          acceptedAt: order.acceptedAt ?? now,
+          payoutStatus: "PENDING",
+          disputeResolution: trimmedNote,
+          disputeResolvedAt: now,
+        });
+        toast.success("Payout released to seller", {
+          description: `${orderLabel(order)} moved to the payout queue.`,
+        });
+      } else {
+        await updateOrder(order.id, {
+          status: "REFUNDED",
+          payoutStatus: "NOT_ELIGIBLE",
+          disputeResolution: trimmedNote,
+          disputeResolvedAt: now,
+        });
+        toast.success("Buyer refunded", {
+          description: `${orderLabel(order)} closed with no seller payout.`,
+        });
+      }
+    } catch {
+      toast.error("Could not resolve the dispute. Try again.");
+      return;
     }
 
     setOpen(false);
@@ -130,7 +135,7 @@ function ResolveDisputeDialog({ order }: { order: Order }) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Resolve dispute — {order.id}</DialogTitle>
+          <DialogTitle>Resolve dispute — {orderLabel(order)}</DialogTitle>
           <DialogDescription>
             {order.buyerName} reported a problem with {order.listingTitle}. Decide whether the
             seller was in the right or the buyer should be refunded, and record why.

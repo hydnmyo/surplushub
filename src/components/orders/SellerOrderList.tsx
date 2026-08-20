@@ -10,6 +10,7 @@ import {
   canTransition,
   inspectionDeadlineFrom,
   ORDER_STATUS_LABELS,
+  orderLabel,
   ordersForSeller,
   type Order,
   type OrderStatus,
@@ -25,7 +26,7 @@ export function SellerOrderList({ businessId }: { businessId: string }) {
   ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   const isDemoFallback = sellerOrders.length === 0 && visibleOrders.length > 0;
 
-  const advanceOrder = (order: Order) => {
+  const advanceOrder = async (order: Order) => {
     const next = sellerNextStatus(order.status);
 
     if (!next || !canTransition(order.status, next)) {
@@ -41,8 +42,12 @@ export function SellerOrderList({ businessId }: { businessId: string }) {
       changes.inspectionDeadline = inspectionDeadlineFrom(deliveredAt);
     }
 
-    updateOrder(order.id, changes);
-    toast.success(`Order moved to ${ORDER_STATUS_LABELS[next].toLowerCase()}`);
+    try {
+      await updateOrder(order.id, changes);
+      toast.success(`Order moved to ${ORDER_STATUS_LABELS[next].toLowerCase()}`);
+    } catch {
+      toast.error("Could not update the order. Try again.");
+    }
   };
 
   return (
@@ -72,8 +77,8 @@ export function SellerOrderList({ businessId }: { businessId: string }) {
                   <StatusBadge status={order.status} />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {order.id} - buyer {order.buyerName} - {order.quantity.toLocaleString("en-US")}{" "}
-                  {order.unit}
+                  {orderLabel(order)} - buyer {order.buyerName} -{" "}
+                  {order.quantity.toLocaleString("en-US")} {order.unit}
                 </p>
               </div>
               <div className="text-right">

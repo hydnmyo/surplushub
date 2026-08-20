@@ -1,24 +1,14 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  DEMO_BUYER_ID,
-  addPurchaseRequestMessage,
-  syncPurchaseRequestMessageStatus,
-  type PurchaseMessageStatus,
-} from "@/lib/messenger";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { addPurchaseRequestMessage, syncPurchaseRequestMessageStatus } from "@/lib/messenger";
 import { useOrders } from "@/components/orders/OrderProvider";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { calculateOrderTotals } from "@/lib/fees";
-import { businessById, listingById } from "@/lib/data";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import type { Order } from "@/lib/orders";
 
-const STORAGE_KEY = "surplushub.purchase-requests.v1";
+const REQUESTS_QUERY_KEY = ["purchase_requests"] as const;
 
 export type PurchaseRequestStatus = "Pending" | "Accepted" | "Countered" | "Rejected" | "Completed";
 
@@ -52,9 +42,7 @@ export type PurchaseRequest = {
   orderId?: string;
 };
 
-type NewPurchaseRequest = Omit<PurchaseRequest, "buyerId" | "id" | "status" | "createdAt"> & {
-  buyerId?: string;
-};
+type NewPurchaseRequest = Omit<PurchaseRequest, "id" | "status" | "createdAt">;
 
 export type CounterOffer = {
   unitPrice: number;
@@ -64,15 +52,46 @@ export type CounterOffer = {
 
 type PurchaseRequestContextValue = {
   requests: PurchaseRequest[];
-  addRequest: (request: NewPurchaseRequest) => PurchaseRequest;
-  updateRequestStatus: (id: string, status: PurchaseRequestStatus) => void;
-  counterRequest: (id: string, offer: CounterOffer) => void;
+  isLoading: boolean;
+  addRequest: (request: NewPurchaseRequest) => Promise<PurchaseRequest>;
+  updateRequestStatus: (id: string, status: PurchaseRequestStatus) => Promise<void>;
+  counterRequest: (id: string, offer: CounterOffer) => Promise<void>;
   /** Locks the agreed price and creates the order the buyer will pay for. */
-  acceptQuote: (id: string) => Order | null;
+  acceptQuote: (id: string) => Promise<Order | null>;
   requestForListing: (listingId: string, buyerId: string) => PurchaseRequest | undefined;
 };
 
 const PurchaseRequestContext = createContext<PurchaseRequestContextValue | null>(null);
+
+type RequestRow = Database["public"]["Tables"]["purchase_requests"]["Row"];
+type RequestInsert = Database["public"]["Tables"]["purchase_requests"]["Insert"];
+
+function rowToRequest(row: RequestRow): PurchaseRequest {
+  const request: PurchaseRequest = {
+    id: row.id,
+    buyerId: row.buyer_id,
+    listingId: row.listing_id,
+    listingTitle: row.listing_title,
+    sellerBusinessId: row.seller_business_id,
+    buyerName: row.buyer_name,
+    quantity: Number(row.quantity),
+    unit: row.unit,
+    offeredPrice: Number(row.offered_price),
+    message: row.message,
+    fulfillment: row.fulfillment,
+    preferredDate: row.preferred_date,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+  if (row.counter_unit_price !== null) request.counterUnitPrice = Number(row.counter_unit_price);
+  if (row.counter_delivery_fee !== null)
+    request.counterDeliveryFee = Number(row.counter_delivery_fee);
+  if (row.counter_note !== null) request.counterNote = row.counter_note;
+  if (row.agreed_unit_price !== null) request.agreedUnitPrice = Number(row.agreed_unit_price);
+  if (row.agreed_total !== null) request.agreedTotal = Number(row.agreed_total);
+  if (row.order_id !== null) request.orderId = row.order_id;
+  return request;
+}
 
 /**
  * The price a deal would settle at right now: the agreed price if locked, the
@@ -89,87 +108,123 @@ export const quotedDeliveryFee = (request: PurchaseRequest) => request.counterDe
 /** A locked deal is done being negotiated. */
 export const isQuoteLocked = (request: PurchaseRequest) => Boolean(request.orderId);
 
+const safeMessengerCall = (fn: () => void) => {
+  try {
+    fn();
+  } catch {
+    // Messenger sync is a courtesy log of the negotiation, not the source of
+    // truth — never let it block accepting a real price or creating an order.
+  }
+};
+
 export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
-  const [requests, setRequests] = useState<PurchaseRequest[]>([]);
+  const { currentUser, isReady } = useAuth();
   const { createOrder } = useOrders();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) setRequests(JSON.parse(stored) as PurchaseRequest[]);
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    }
-  }, []);
-
-  const persist = useCallback((next: PurchaseRequest[]) => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // Negotiation must keep working even when browser storage is unavailable.
-    }
-    return next;
-  }, []);
+  const { data: requests = [], isLoading } = useQuery({
+    queryKey: REQUESTS_QUERY_KEY,
+    enabled: isReady && Boolean(currentUser),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("purchase_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data.map(rowToRequest);
+    },
+  });
 
   const addRequest = useCallback(
-    (request: NewPurchaseRequest) => {
-      const created: PurchaseRequest = {
-        ...request,
-        buyerId: request.buyerId || DEMO_BUYER_ID,
-        id: `REQ-${Date.now()}`,
-        status: "Pending",
-        createdAt: new Date().toISOString(),
+    async (request: NewPurchaseRequest) => {
+      const insertRow: RequestInsert = {
+        buyer_id: request.buyerId,
+        buyer_name: request.buyerName,
+        listing_id: request.listingId,
+        listing_title: request.listingTitle,
+        seller_business_id: request.sellerBusinessId,
+        quantity: request.quantity,
+        unit: request.unit,
+        offered_price: request.offeredPrice,
+        message: request.message,
+        fulfillment: request.fulfillment,
+        preferred_date: request.preferredDate,
       };
-      setRequests((current) => persist([created, ...current]));
-      addPurchaseRequestMessage({ ...created, requestId: created.id });
+      const { data, error } = await supabase
+        .from("purchase_requests")
+        .insert(insertRow)
+        .select("*")
+        .single();
+      if (error) throw error;
+      const created = rowToRequest(data);
+      queryClient.setQueryData<PurchaseRequest[]>(REQUESTS_QUERY_KEY, (current) => [
+        created,
+        ...(current ?? []),
+      ]);
+      safeMessengerCall(() => addPurchaseRequestMessage({ ...created, requestId: created.id }));
       return created;
     },
-    [persist],
+    [queryClient],
   );
 
   const updateRequestStatus = useCallback(
-    (id: string, status: PurchaseRequestStatus) => {
-      setRequests((current) =>
-        persist(current.map((request) => (request.id === id ? { ...request, status } : request))),
+    async (id: string, status: PurchaseRequestStatus) => {
+      const { data, error } = await supabase
+        .from("purchase_requests")
+        .update({ status })
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      const updated = rowToRequest(data);
+      queryClient.setQueryData<PurchaseRequest[]>(REQUESTS_QUERY_KEY, (current) =>
+        (current ?? []).map((request) => (request.id === id ? updated : request)),
       );
-      syncPurchaseRequestMessageStatus(id, normalizeMessengerStatus(status));
+      safeMessengerCall(() =>
+        syncPurchaseRequestMessageStatus(id, status === "Countered" ? "Pending" : status),
+      );
     },
-    [persist],
+    [queryClient],
   );
 
   const counterRequest = useCallback(
-    (id: string, offer: CounterOffer) => {
-      setRequests((current) =>
-        persist(
-          current.map((request) =>
-            request.id === id && !isQuoteLocked(request)
-              ? {
-                  ...request,
-                  status: "Countered" as const,
-                  counterUnitPrice: offer.unitPrice,
-                  counterDeliveryFee: offer.deliveryFee,
-                  counterNote: offer.note,
-                }
-              : request,
-          ),
-        ),
+    async (id: string, offer: CounterOffer) => {
+      const { data, error } = await supabase
+        .from("purchase_requests")
+        .update({
+          status: "Countered",
+          counter_unit_price: offer.unitPrice,
+          counter_delivery_fee: offer.deliveryFee,
+          counter_note: offer.note,
+        })
+        .eq("id", id)
+        .is("order_id", null)
+        .select("*")
+        .single();
+      if (error) throw error;
+      const updated = rowToRequest(data);
+      queryClient.setQueryData<PurchaseRequest[]>(REQUESTS_QUERY_KEY, (current) =>
+        (current ?? []).map((request) => (request.id === id ? updated : request)),
       );
-      syncPurchaseRequestMessageStatus(id, "Pending");
+      safeMessengerCall(() => syncPurchaseRequestMessageStatus(id, "Pending"));
     },
-    [persist],
+    [queryClient],
   );
 
   const acceptQuote = useCallback(
-    (id: string) => {
+    async (id: string) => {
       const request = requests.find((item) => item.id === id);
       if (!request || isQuoteLocked(request)) return null;
 
       const unitPrice = quotedUnitPrice(request);
       const materialPrice = unitPrice * request.quantity;
-      const listing = listingById(request.listingId);
-      const seller = businessById(request.sellerBusinessId);
 
-      const order = createOrder({
+      const [{ data: listing }, { data: seller }] = await Promise.all([
+        supabase.from("listings").select("category").eq("id", request.listingId).maybeSingle(),
+        supabase.from("businesses").select("name").eq("id", request.sellerBusinessId).maybeSingle(),
+      ]);
+
+      const order = await createOrder({
         listingId: request.listingId,
         listingTitle: request.listingTitle,
         category: listing?.category ?? "other",
@@ -186,31 +241,34 @@ export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
         }),
       });
 
-      setRequests((current) =>
-        persist(
-          current.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  status: "Accepted" as const,
-                  agreedUnitPrice: unitPrice,
-                  agreedTotal: materialPrice,
-                  orderId: order.id,
-                }
-              : item,
-          ),
-        ),
+      const { data, error } = await supabase
+        .from("purchase_requests")
+        .update({
+          status: "Accepted",
+          agreed_unit_price: unitPrice,
+          agreed_total: materialPrice,
+          order_id: order.id,
+        })
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw error;
+
+      const updated = rowToRequest(data);
+      queryClient.setQueryData<PurchaseRequest[]>(REQUESTS_QUERY_KEY, (current) =>
+        (current ?? []).map((item) => (item.id === id ? updated : item)),
       );
-      syncPurchaseRequestMessageStatus(id, "Accepted");
+      safeMessengerCall(() => syncPurchaseRequestMessageStatus(id, "Accepted"));
 
       return order;
     },
-    [requests, createOrder, persist],
+    [requests, createOrder, queryClient],
   );
 
   const value = useMemo<PurchaseRequestContextValue>(
     () => ({
       requests,
+      isLoading,
       addRequest,
       updateRequestStatus,
       counterRequest,
@@ -218,16 +276,12 @@ export function PurchaseRequestProvider({ children }: { children: ReactNode }) {
       requestForListing: (listingId, buyerId) =>
         requests.find((request) => request.listingId === listingId && request.buyerId === buyerId),
     }),
-    [requests, addRequest, updateRequestStatus, counterRequest, acceptQuote],
+    [requests, isLoading, addRequest, updateRequestStatus, counterRequest, acceptQuote],
   );
 
   return (
     <PurchaseRequestContext.Provider value={value}>{children}</PurchaseRequestContext.Provider>
   );
-}
-
-function normalizeMessengerStatus(status: PurchaseRequestStatus): PurchaseMessageStatus {
-  return status === "Countered" ? "Pending" : status;
 }
 
 export function usePurchaseRequests() {
