@@ -8,12 +8,11 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   vite: {
+    server: {
+      port: 8081,
+    },
     optimizeDeps: {
-      include: [
-        "lucide-react",
-        "@tanstack/react-router",
-        "@supabase/supabase-js",
-      ],
+      include: ["lucide-react", "@tanstack/react-router", "@supabase/supabase-js"],
     },
   },
   tanstackStart: {

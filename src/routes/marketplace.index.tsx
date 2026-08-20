@@ -19,7 +19,6 @@ import {
   BUSINESSES,
   CATEGORIES,
   CONDITIONS,
-  LISTINGS,
   LOCATIONS,
   MATERIAL_TYPES,
   type CategoryId,
@@ -106,8 +105,16 @@ function toListing(row: ListingRow): Listing {
   const postedDaysAgo = Number.isFinite(createdAt)
     ? Math.max(0, Math.floor((Date.now() - createdAt) / 86_400_000))
     : 0;
+  const seller = row.businesses
+    ? {
+        id: row.businesses.id,
+        name: row.businesses.name,
+        verified: row.businesses.verified,
+        rating: Number(row.businesses.rating),
+      }
+    : null;
 
-  return {
+  const listing: Listing = {
     id: row.id,
     title: row.title,
     category: row.category,
@@ -133,6 +140,10 @@ function toListing(row: ListingRow): Listing {
     description: row.description,
     uses: row.uses ?? [],
   };
+
+  if (seller) listing.seller = seller;
+
+  return listing;
 }
 
 function Marketplace() {
@@ -203,15 +214,13 @@ function Marketplace() {
 
         const { data, error } = await query;
         if (error) throw error;
-        if (!data || data.length === 0) {
-          throw new Error("Supabase returned no marketplace listings; using mock data fallback.");
-        }
 
         let next = ((data ?? []) as unknown as ListingRow[]).map(toListing);
 
         if (minRating !== "all" || verifiedOnly || sort === "Highest Rated") {
           next = next.filter((listing) => {
-            const seller = BUSINESSES.find((business) => business.id === listing.sellerId);
+            const seller =
+              listing.seller ?? BUSINESSES.find((business) => business.id === listing.sellerId);
             if (minRating !== "all" && (seller?.rating ?? 0) < Number(minRating)) return false;
             if (verifiedOnly && !seller?.verified) return false;
             return true;
@@ -220,20 +229,22 @@ function Marketplace() {
 
         if (sort === "Highest Rated") {
           next = [...next].sort((a, b) => {
-            const aRating = BUSINESSES.find((business) => business.id === a.sellerId)?.rating ?? 0;
-            const bRating = BUSINESSES.find((business) => business.id === b.sellerId)?.rating ?? 0;
+            const aRating =
+              a.seller?.rating ??
+              BUSINESSES.find((business) => business.id === a.sellerId)?.rating ??
+              0;
+            const bRating =
+              b.seller?.rating ??
+              BUSINESSES.find((business) => business.id === b.sellerId)?.rating ??
+              0;
             return bRating - aRating;
           });
         }
 
         if (!cancelled) setListings(next);
       } catch (error) {
-        console.error(
-          "Unable to fetch marketplace listings from Supabase; using mock data fallback.",
-          error,
-        );
-        const fallback = LISTINGS.filter((listing) => listing.status !== "Hidden");
-        if (!cancelled) setListings(fallback);
+        console.error("Unable to fetch marketplace listings from Supabase.", error);
+        if (!cancelled) setListings([]);
       } finally {
         if (!cancelled) setIsLoading(false);
       }

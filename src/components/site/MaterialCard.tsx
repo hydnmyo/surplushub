@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { businessById, categoryImage, categoryName, priceLabel, type Listing } from "@/lib/data";
 
 export function MaterialCard({ listing }: { listing: Listing }) {
-  const seller = businessById(listing.sellerId);
+  const seller = listing.seller ?? businessById(listing.sellerId);
 
   return (
     <article className="group surface-card flex flex-col overflow-hidden transition-shadow hover:shadow-[var(--shadow-lift)]">

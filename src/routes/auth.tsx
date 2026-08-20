@@ -5,13 +5,22 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/site/Logo";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { CURRENT_USER } from "@/lib/auth";
+import { CATEGORIES, type CategoryId } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
+import type { AuthUser } from "@/lib/auth";
+import type { Tables } from "@/types/database.types";
 
-const MOCK_REGISTRATION_KEY = "surplushub.mock-business-registration.v1";
+type BusinessRow = Tables<"businesses">;
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -40,62 +49,33 @@ function AuthPage() {
   const [signInPassword, setSignInPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [industry, setIndustry] = useState("");
+  const [category, setCategory] = useState<CategoryId>("plastic");
   const [location, setLocation] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
 
-  const createMockUser = () => ({
-    ...CURRENT_USER,
-    name: contactPerson || signInEmail || email || CURRENT_USER.name,
-    businessName: companyName || CURRENT_USER.businessName,
-  });
-
-  const persistMockRegistration = () => {
-    const mockBusiness = {
-      companyName: companyName || CURRENT_USER.businessName,
-      industry,
-      location,
-      contactPerson: contactPerson || CURRENT_USER.name,
-      email: email || signInEmail,
-      phone,
-      createdAt: new Date().toISOString(),
-      mode: "local-dev-fallback",
-    };
-
-    window.localStorage.setItem(MOCK_REGISTRATION_KEY, JSON.stringify(mockBusiness));
-  };
-
-  const finishWithMockSession = (message: string) => {
-    persistMockRegistration();
-    signIn(createMockUser());
-    toast.success(message);
-    void navigate({ to: "/dashboard", replace: true });
-  };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
         email: signInEmail,
         password: signInPassword,
       });
 
-      if (error) throw error;
+      if (signInError) throw signInError;
+      if (!authData.user) throw new Error("Supabase did not return an authenticated user.");
 
-      signIn(CURRENT_USER);
+      const business = await fetchBusinessProfile(authData.user.id);
+      signIn(businessToAuthUser(business, authData.user.email));
       toast.success("Signed in successfully");
       void navigate({ to: "/dashboard", replace: true });
     } catch (error) {
-      if (isNetworkOrCorsError(error)) {
-        console.error("Supabase sign-in failed; using local mock session fallback.", error);
-        finishWithMockSession("Signed in locally. Supabase is unreachable in this environment.");
-      } else {
-        toast.error(error instanceof Error ? error.message : "Unable to sign in");
-      }
+      console.error("Supabase sign-in failed.", error);
+      toast.error(error instanceof Error ? error.message : "Unable to sign in");
     } finally {
       setIsLoading(false);
     }
@@ -106,37 +86,46 @@ function AuthPage() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            company_name: companyName,
-            industry,
-            location,
+      });
+
+      if (signUpError) throw signUpError;
+      if (!authData.user) throw new Error("Supabase did not return a user after sign-up.");
+
+      const { data: business, error: businessError } = await supabase
+        .from("businesses")
+        .insert({
+          user_id: authData.user.id,
+          name: companyName,
+          initials: initialsFor(companyName),
+          industry,
+          location,
+          categories: [category],
+          description: "",
+          contact: {
             contact_person: contactPerson,
+            email,
             phone,
-            is_verified: false,
           },
-        },
-      });
+          hours: "",
+          website: null,
+          social_links: {},
+          since: new Date().getFullYear(),
+          verified: false,
+        })
+        .select("*")
+        .single();
 
-      if (error) throw error;
+      if (businessError) throw businessError;
 
-      signIn({
-        ...CURRENT_USER,
-        name: contactPerson || CURRENT_USER.name,
-        businessName: companyName || CURRENT_USER.businessName,
-      });
+      signIn(businessToAuthUser(business, authData.user.email));
       toast.success("Business registered. Verification is pending.");
       void navigate({ to: "/dashboard", replace: true });
     } catch (error) {
-      if (isNetworkOrCorsError(error)) {
-        console.error("Supabase registration failed; storing mock business locally.", error);
-        finishWithMockSession("Business registered locally. Supabase is unreachable right now.");
-      } else {
-        toast.error(error instanceof Error ? error.message : "Unable to create account");
-      }
+      console.error("Supabase registration failed.", error);
+      toast.error(error instanceof Error ? error.message : "Unable to create account");
     } finally {
       setIsLoading(false);
     }
@@ -193,6 +182,21 @@ function AuthPage() {
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
             />
+            <div>
+              <Label>Primary material category</Label>
+              <Select value={category} onValueChange={(value) => setCategory(value as CategoryId)}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <F
               label="Location"
               placeholder="Hlaing Tharyar, Yangon"
@@ -236,9 +240,45 @@ function AuthPage() {
   );
 }
 
-function isNetworkOrCorsError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return /network|cors|failed to fetch|load failed|fetch/i.test(message);
+async function fetchBusinessProfile(userId: string) {
+  const { data, error } = await supabase
+    .from("businesses")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("No business profile is linked to this account.");
+
+  return data;
+}
+
+function businessToAuthUser(business: BusinessRow, email?: string | null): AuthUser {
+  return {
+    id: business.user_id,
+    businessId: business.id,
+    businessName: business.name,
+    name: contactName(business.contact) ?? business.name ?? email ?? "Business user",
+    role: "business",
+  };
+}
+
+function contactName(contact: BusinessRow["contact"]) {
+  if (!contact || typeof contact !== "object" || Array.isArray(contact)) return null;
+
+  const value = contact["contact_person"];
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function initialsFor(name: string) {
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "SH";
 }
 
 function F({

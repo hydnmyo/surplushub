@@ -52,7 +52,7 @@ export function Header() {
   };
 
   const handleSignOut = () => {
-    signOut();
+    void signOut();
     closeMobileNavigation();
     void navigate({ to: "/", replace: true });
   };
@@ -105,7 +105,11 @@ export function Header() {
             >
               {ABOUT_NAV.map((item) => (
                 <DropdownMenuItem key={item.to} asChild>
-                  <Link to={item.to} onClick={() => setAboutOpen(false)} className="w-full cursor-pointer">
+                  <Link
+                    to={item.to}
+                    onClick={() => setAboutOpen(false)}
+                    className="w-full cursor-pointer"
+                  >
                     {item.label}
                   </Link>
                 </DropdownMenuItem>
@@ -129,13 +133,21 @@ export function Header() {
                 <DropdownMenuItem key={n.title} className="flex flex-col items-start gap-0.5 py-2">
                   <span className="text-sm font-medium">{n.title}</span>
                   <span className="text-xs text-muted-foreground">{n.body}</span>
-                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{n.time}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {n.time}
+                  </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
           {isBusiness ? (
             <>
+              <div className="max-w-44 text-right">
+                <p className="truncate text-sm font-semibold leading-none">
+                  {currentUser.businessName}
+                </p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">{currentUser.name}</p>
+              </div>
               <Button size="sm" asChild>
                 <Link to="/dashboard">
                   <LayoutDashboard className="size-4" /> Business Dashboard
@@ -146,7 +158,9 @@ export function Header() {
               </Button>
             </>
           ) : currentUser ? (
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>Sign Out</Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              Sign Out
+            </Button>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -173,7 +187,11 @@ export function Header() {
       {open && (
         <div id="mobile-navigation" className="border-t border-border bg-card px-4 py-3 lg:hidden">
           <nav className="flex flex-col">
-            <Link to="/" onClick={closeMobileNavigation} className="rounded-lg px-3 py-2 text-sm font-medium">
+            <Link
+              to="/"
+              onClick={closeMobileNavigation}
+              className="rounded-lg px-3 py-2 text-sm font-medium"
+            >
               Home
             </Link>
             {NAV.map((item) => (
@@ -200,7 +218,10 @@ export function Header() {
               />
             </button>
             {mobileAboutOpen && (
-              <div id="mobile-about-navigation" className="ml-3 flex flex-col border-l border-border pl-2">
+              <div
+                id="mobile-about-navigation"
+                className="ml-3 flex flex-col border-l border-border pl-2"
+              >
                 {ABOUT_NAV.map((item) => (
                   <Link
                     key={item.to}
@@ -226,16 +247,25 @@ export function Header() {
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.map((n) => (
-                  <DropdownMenuItem key={n.title} className="flex flex-col items-start gap-0.5 py-2">
+                  <DropdownMenuItem
+                    key={n.title}
+                    className="flex flex-col items-start gap-0.5 py-2"
+                  >
                     <span className="text-sm font-medium">{n.title}</span>
                     <span className="text-xs text-muted-foreground">{n.body}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{n.time}</span>
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {n.time}
+                    </span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
             {isBusiness ? (
               <>
+                <div className="w-full px-1 text-sm">
+                  <p className="font-semibold">{currentUser.businessName}</p>
+                  <p className="text-xs text-muted-foreground">{currentUser.name}</p>
+                </div>
                 <Button size="sm" asChild>
                   <Link to="/dashboard" onClick={closeMobileNavigation}>
                     <LayoutDashboard className="size-4" /> Business Dashboard
@@ -246,14 +276,20 @@ export function Header() {
                 </Button>
               </>
             ) : currentUser ? (
-              <Button size="sm" variant="ghost" onClick={handleSignOut}>Sign Out</Button>
+              <Button size="sm" variant="ghost" onClick={handleSignOut}>
+                Sign Out
+              </Button>
             ) : (
               <>
                 <Button size="sm" variant="ghost" asChild>
-                  <Link to="/auth" onClick={closeMobileNavigation}>Login</Link>
+                  <Link to="/auth" onClick={closeMobileNavigation}>
+                    Login
+                  </Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
-                  <Link to="/auth" onClick={closeMobileNavigation}>Sign Up</Link>
+                  <Link to="/auth" onClick={closeMobileNavigation}>
+                    Sign Up
+                  </Link>
                 </Button>
               </>
             )}

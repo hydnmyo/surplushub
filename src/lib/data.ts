@@ -371,6 +371,7 @@ export interface Listing {
   location: string;
   availableFrom: string;
   sellerId: string;
+  seller?: Pick<Business, "id" | "name" | "verified" | "rating">;
   requiresProcessing: boolean;
   pickupAvailable: boolean;
   featured?: boolean;
