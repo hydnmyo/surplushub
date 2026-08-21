@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, Building2, Factory, Users } from "lucide-react";
 import { BUSINESSES, CATEGORIES, LISTINGS, TRANSACTIONS } from "@/lib/data";
+import { useLanguage } from "@/lib/i18n";
 
 export const Route = createFileRoute("/impact")({
   head: () => ({
@@ -25,22 +26,23 @@ const marketContextCards = [
   {
     icon: Users,
     value: "47,210",
-    description: "Registered private industrial enterprises",
+    descriptionKey: "impact.privateEnterprises",
   },
   {
     icon: Building2,
     value: "8,541",
-    valueSuffix: "Yangon  •  7,137 Mandalay",
-    description: "Registered industrial enterprises in the two main markets",
+    valueSuffixKey: "impact.yangonMandalay",
+    descriptionKey: "impact.mainMarketEnterprises",
   },
   {
     icon: Factory,
     value: "1,577",
-    description: "Registered rubber & plastic product enterprises",
+    descriptionKey: "impact.rubberPlasticEnterprises",
   },
 ] as const;
 
 function Impact() {
+  const { t } = useLanguage();
   const activeListings = LISTINGS.filter((listing) => listing.status === "Active");
   const completedTransactions = TRANSACTIONS.filter(
     (transaction) => transaction.status === "Completed",
@@ -51,11 +53,14 @@ function Impact() {
   );
 
   const impactStats = [
-    { value: String(CATEGORIES.length), label: "Material categories" },
-    { value: String(BUSINESSES.length), label: "Businesses connected" },
-    { value: String(completedTransactions.length), label: "Completed transactions" },
-    { value: `${(completedValue / 1_000_000).toFixed(2)}M MMK`, label: "Surplus value recovered" },
-    { value: String(activeListings.length), label: "Active listings" },
+    { value: String(CATEGORIES.length), label: t("impact.materialCategories") },
+    { value: String(BUSINESSES.length), label: t("impact.businessesConnected") },
+    { value: String(completedTransactions.length), label: t("impact.completedTransactions") },
+    {
+      value: `${(completedValue / 1_000_000).toFixed(2)}M MMK`,
+      label: t("impact.surplusValueRecovered"),
+    },
+    { value: String(activeListings.length), label: t("impact.activeListings") },
   ];
 
   return (
@@ -64,14 +69,13 @@ function Impact() {
         <div className="mx-auto grid max-w-[1200px] items-center gap-8 px-4 py-8 sm:px-8 md:px-12 lg:min-h-[330px] lg:grid-cols-[minmax(0,0.58fr)_minmax(0,0.42fr)] lg:gap-12 lg:px-14 xl:px-16">
           <div className="relative z-10">
             <div className="inline-flex rounded-full border border-[#a8e063]/60 bg-white/5 px-3.5 py-1.5 text-[13px] font-medium leading-none text-white shadow-[inset_0_0_18px_rgba(168,224,99,0.12)] sm:text-sm">
-              Live Marketplace Snapshot
+              {t("impact.badge")}
             </div>
             <h1 className="mt-7 max-w-[620px] font-display text-[clamp(1.75rem,3.5vw,2.375rem)] font-semibold leading-[1.14] tracking-normal text-white">
-              Give Materials a Second Life.
+              {t("impact.heroTitle")}
             </h1>
             <p className="mt-4 max-w-[620px] text-[clamp(0.875rem,1.15vw,1rem)] leading-[1.6] text-white/86">
-              We help businesses exchange surplus and recyclable materials instead of allowing
-              usable resources to be unnecessarily discarded.
+              {t("impact.heroBody")}
             </p>
           </div>
 
@@ -101,7 +105,7 @@ function Impact() {
         <div className="mb-4 flex items-center gap-3 text-[#004934]">
           <BarChart3 className="size-5 fill-[#004934]/10 stroke-[2.6]" aria-hidden="true" />
           <h2 className="font-display text-sm font-bold uppercase tracking-normal">
-            Myanmar Market Context
+            {t("impact.marketContext")}
           </h2>
         </div>
 
@@ -111,7 +115,7 @@ function Impact() {
 
             return (
               <article
-                key={card.description}
+                key={card.descriptionKey}
                 className="rounded-[12px] border border-black/5 bg-white px-5 py-5 shadow-[0_6px_18px_rgba(0,0,0,0.07)]"
               >
                 <div className="flex gap-4">
@@ -123,18 +127,18 @@ function Impact() {
                       <p className="font-display text-[clamp(1.25rem,1.8vw,1.5rem)] font-semibold leading-none tracking-normal">
                         {card.value}
                       </p>
-                      {"valueSuffix" in card ? (
+                      {"valueSuffixKey" in card ? (
                         <p className="text-xs font-semibold text-[#1f3f32]">
-                          {card.valueSuffix.replace("\u00e2\u20ac\u00a2", "\u2022")}
+                          {t(card.valueSuffixKey)}
                         </p>
                       ) : null}
                     </div>
                     <p className="mt-1.5 max-w-xs text-xs font-semibold leading-5 text-neutral-900">
-                      {card.description}
+                      {t(card.descriptionKey)}
                     </p>
                     <div className="my-4 border-t border-dashed border-neutral-300" />
                     <p className="text-xs leading-5 text-neutral-500">
-                      Market context — not SurplusHub results
+                      {t("impact.marketContextNote")}
                     </p>
                   </div>
                 </div>

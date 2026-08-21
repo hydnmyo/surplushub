@@ -14,23 +14,27 @@ import {
 import { Logo } from "./Logo";
 import { BUYER_NOTIFICATIONS, SELLER_NOTIFICATIONS } from "@/lib/data";
 import { MessengerButton } from "@/components/messenger/MessengerButton";
+import { useDocumentLocalization, useLanguage } from "@/lib/i18n";
+import { LanguageToggle } from "./LanguageToggle";
 
 const NAV = [
-  { to: "/marketplace", label: "Marketplace" },
-  { to: "/wanted", label: "Material Wanted" },
-  { to: "/businesses", label: "Businesses" },
-  { to: "/impact", label: "Impact" },
+  { to: "/marketplace", labelKey: "nav.marketplace" },
+  { to: "/wanted", labelKey: "nav.wanted" },
+  { to: "/businesses", labelKey: "nav.businesses" },
+  { to: "/impact", labelKey: "nav.impact" },
 ] as const;
 
 const ABOUT_NAV = [
-  { to: "/how-it-works", label: "How It Works" },
-  { to: "/trust", label: "Trust & Safety" },
-  { to: "/about", label: "Business Model" },
+  { to: "/how-it-works", labelKey: "nav.howItWorks" },
+  { to: "/trust", labelKey: "nav.trust" },
+  { to: "/about", labelKey: "nav.businessModel" },
 ] as const;
 
 export function Header() {
   const navigate = useNavigate();
   const { currentUser, signOut } = useAuth();
+  const { language, t } = useLanguage();
+  useDocumentLocalization(language);
   const [open, setOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
@@ -71,7 +75,7 @@ export function Header() {
             activeProps={{ className: "bg-mint text-accent-foreground" }}
             className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            Home
+            {t("nav.home")}
           </Link>
           {NAV.map((item) => (
             <Link
@@ -80,7 +84,7 @@ export function Header() {
               activeProps={{ className: "bg-mint text-accent-foreground" }}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           ))}
           <DropdownMenu open={aboutOpen} onOpenChange={setAboutOpen} modal={false}>
@@ -89,9 +93,9 @@ export function Header() {
                 <button
                   type="button"
                   className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label="About navigation"
+                  aria-label={t("nav.aboutNavigation")}
                 >
-                  About
+                  {t("nav.about")}
                   <ChevronDown
                     aria-hidden="true"
                     className={`size-3.5 transition-transform ${aboutOpen ? "rotate-180" : ""}`}
@@ -112,7 +116,7 @@ export function Header() {
                     onClick={() => setAboutOpen(false)}
                     className="w-full cursor-pointer"
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -121,16 +125,22 @@ export function Header() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-2 lg:flex">
+          <LanguageToggle />
           <MessengerButton />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t("notifications.aria")}
+                className="relative"
+              >
                 <Bell className="size-4" />
                 <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-emerald" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("notifications.title")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {notifications.map((n) => (
                 <DropdownMenuItem key={n.title} className="flex flex-col items-start gap-0.5 py-2">
@@ -147,10 +157,15 @@ export function Header() {
             <>
               <Button size="sm" asChild>
                 <Link to="/admin">
-                  <ShieldCheck className="size-4" /> Admin Console
+                  <ShieldCheck className="size-4" /> {t("account.adminConsole")}
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" aria-label="Sign out" onClick={handleSignOut}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t("auth.signOut")}
+                onClick={handleSignOut}
+              >
                 <LogOut className="size-4" />
               </Button>
             </>
@@ -158,32 +173,37 @@ export function Header() {
             <>
               <Button size="sm" asChild>
                 <Link to="/dashboard">
-                  <LayoutDashboard className="size-4" /> Business Dashboard
+                  <LayoutDashboard className="size-4" /> {t("account.businessDashboard")}
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" aria-label="Sign out" onClick={handleSignOut}>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t("auth.signOut")}
+                onClick={handleSignOut}
+              >
                 <LogOut className="size-4" />
               </Button>
             </>
           ) : currentUser ? (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/orders">My Orders</Link>
+                <Link to="/orders">{t("account.myOrders")}</Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                Sign Out
+                {t("auth.signOut")}
               </Button>
             </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/auth" search={{ redirect: undefined, tab: undefined }}>
-                  Login
+                  {t("auth.login")}
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/auth" search={{ redirect: undefined, tab: "register" }}>
-                  Sign Up
+                  {t("auth.signUp")}
                 </Link>
               </Button>
             </>
@@ -193,7 +213,7 @@ export function Header() {
         <button
           className="ml-auto rounded-lg p-2 text-muted-foreground lg:hidden"
           onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle navigation"
+          aria-label={t("nav.toggleNavigation")}
           aria-expanded={open}
           aria-controls="mobile-navigation"
         >
@@ -209,7 +229,7 @@ export function Header() {
               onClick={closeMobileNavigation}
               className="rounded-lg px-3 py-2 text-sm font-medium"
             >
-              Home
+              {t("nav.home")}
             </Link>
             {NAV.map((item) => (
               <Link
@@ -218,7 +238,7 @@ export function Header() {
                 onClick={closeMobileNavigation}
                 className="rounded-lg px-3 py-2 text-sm font-medium"
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
             <button
@@ -228,7 +248,7 @@ export function Header() {
               aria-controls="mobile-about-navigation"
               className="flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              About
+              {t("nav.about")}
               <ChevronDown
                 aria-hidden="true"
                 className={`size-4 transition-transform ${mobileAboutOpen ? "rotate-180" : ""}`}
@@ -246,23 +266,29 @@ export function Header() {
                     onClick={closeMobileNavigation}
                     className="rounded-lg px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 ))}
               </div>
             )}
           </nav>
           <div className="mt-3 flex flex-wrap gap-2">
+            <LanguageToggle />
             <MessengerButton onNavigate={closeMobileNavigation} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t("notifications.aria")}
+                  className="relative"
+                >
                   <Bell className="size-4" />
                   <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-emerald" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("notifications.title")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.map((n) => (
                   <DropdownMenuItem
@@ -282,33 +308,33 @@ export function Header() {
               <>
                 <Button size="sm" asChild>
                   <Link to="/admin" onClick={closeMobileNavigation}>
-                    <ShieldCheck className="size-4" /> Admin Console
+                    <ShieldCheck className="size-4" /> {t("account.adminConsole")}
                   </Link>
                 </Button>
                 <Button size="sm" variant="ghost" onClick={handleSignOut}>
-                  <LogOut className="size-4" /> Sign Out
+                  <LogOut className="size-4" /> {t("auth.signOut")}
                 </Button>
               </>
             ) : isBusiness ? (
               <>
                 <Button size="sm" asChild>
                   <Link to="/dashboard" onClick={closeMobileNavigation}>
-                    <LayoutDashboard className="size-4" /> Business Dashboard
+                    <LayoutDashboard className="size-4" /> {t("account.businessDashboard")}
                   </Link>
                 </Button>
                 <Button size="sm" variant="ghost" onClick={handleSignOut}>
-                  <LogOut className="size-4" /> Sign Out
+                  <LogOut className="size-4" /> {t("auth.signOut")}
                 </Button>
               </>
             ) : currentUser ? (
               <>
                 <Button size="sm" variant="ghost" asChild>
                   <Link to="/orders" onClick={closeMobileNavigation}>
-                    My Orders
+                    {t("account.myOrders")}
                   </Link>
                 </Button>
                 <Button size="sm" variant="ghost" onClick={handleSignOut}>
-                  Sign Out
+                  {t("auth.signOut")}
                 </Button>
               </>
             ) : (
@@ -319,7 +345,7 @@ export function Header() {
                     search={{ redirect: undefined, tab: undefined }}
                     onClick={closeMobileNavigation}
                   >
-                    Login
+                    {t("auth.login")}
                   </Link>
                 </Button>
                 <Button size="sm" variant="outline" asChild>
@@ -328,7 +354,7 @@ export function Header() {
                     search={{ redirect: undefined, tab: "register" }}
                     onClick={closeMobileNavigation}
                   >
-                    Sign Up
+                    {t("auth.signUp")}
                   </Link>
                 </Button>
               </>
