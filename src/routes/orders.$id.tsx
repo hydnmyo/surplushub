@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { categoryName, formatMMK } from "@/lib/data";
-import { canTransition, ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/orders";
+import { canTransition, orderLabel, ORDER_STATUS_LABELS, type OrderStatus } from "@/lib/orders";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/orders/$id")({
 
 function OrderDetail() {
   const { id } = Route.useParams();
-  const { getOrder, updateOrder } = useOrders();
+  const { getOrder, updateOrder, isLoading } = useOrders();
   const order = getOrder(id);
   const [disputeReason, setDisputeReason] = useState("");
   const [isDisputeOpen, setIsDisputeOpen] = useState(false);
@@ -51,6 +51,16 @@ function OrderDetail() {
     ];
   }, [order]);
 
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+        <div className="surface-card p-6 text-center text-sm text-muted-foreground">
+          Loading order…
+        </div>
+      </div>
+    );
+  }
+
   if (!order) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -62,7 +72,7 @@ function OrderDetail() {
         <div className="surface-card mt-6 p-6">
           <h1 className="font-display text-2xl font-semibold">Order not found</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This order may have been removed from local storage.
+            This order doesn't exist, or you don't have access to it.
           </p>
         </div>
       </div>
@@ -72,23 +82,27 @@ function OrderDetail() {
   const canAccept = order.status === "DELIVERED" && canTransition(order.status, "COMPLETED");
   const canDispute = order.status === "DELIVERED" && canTransition(order.status, "DISPUTED");
 
-  const acceptOrder = () => {
+  const acceptOrder = async () => {
     if (!canTransition(order.status, "COMPLETED")) {
       toast.error("This order cannot be accepted from its current status.");
       return;
     }
 
-    updateOrder(order.id, {
-      status: "COMPLETED",
-      acceptedAt: new Date().toISOString(),
-      payoutStatus: "PENDING",
-    });
-    toast.success("Order accepted", {
-      description: "Seller payout has been queued for admin review.",
-    });
+    try {
+      await updateOrder(order.id, {
+        status: "COMPLETED",
+        acceptedAt: new Date().toISOString(),
+        payoutStatus: "PENDING",
+      });
+      toast.success("Order accepted", {
+        description: "Seller payout has been queued for admin review.",
+      });
+    } catch {
+      toast.error("Could not accept the order. Try again.");
+    }
   };
 
-  const reportProblem = () => {
+  const reportProblem = async () => {
     const reason = disputeReason.trim();
     if (!reason) {
       toast.error("Add a short problem report first.");
@@ -99,15 +113,19 @@ function OrderDetail() {
       return;
     }
 
-    updateOrder(order.id, {
-      status: "DISPUTED",
-      disputeReason: reason,
-      payoutStatus: order.payoutStatus,
-    });
-    setIsDisputeOpen(false);
-    toast.success("Problem reported", {
-      description: "The seller payout remains paused.",
-    });
+    try {
+      await updateOrder(order.id, {
+        status: "DISPUTED",
+        disputeReason: reason,
+        payoutStatus: order.payoutStatus,
+      });
+      setIsDisputeOpen(false);
+      toast.success("Problem reported", {
+        description: "The seller payout remains paused.",
+      });
+    } catch {
+      toast.error("Could not submit the report. Try again.");
+    }
   };
 
   return (
@@ -121,7 +139,7 @@ function OrderDetail() {
       <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-display text-3xl font-semibold">Order {id}</h1>
+            <h1 className="font-display text-3xl font-semibold">Order {orderLabel(order)}</h1>
             <StatusBadge status={order.status} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -181,6 +199,16 @@ function OrderDetail() {
         </div>
       ) : null}
 
+      {order.autoAccepted ? (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-md border border-primary/25 bg-mint p-4 text-sm">
+          <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+          <p className="text-accent-foreground">
+            Automatically accepted after the 48-hour inspection window passed with no response.
+            Seller payout is queued.
+          </p>
+        </div>
+      ) : null}
+
       <div className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_0.9fr]">
         <div className="surface-card p-6">
           <h2 className="font-display text-xl font-semibold">Fulfillment timeline</h2>
@@ -213,7 +241,10 @@ function OrderDetail() {
           {order.acceptedAt ? (
             <div>
               <dt className="text-xs uppercase tracking-wide text-muted-foreground">Accepted</dt>
-              <dd className="mt-1 text-sm font-medium">{formatDateTime(order.acceptedAt)}</dd>
+              <dd className="mt-1 text-sm font-medium">
+                {formatDateTime(order.acceptedAt)}
+                {order.autoAccepted ? " (auto-accepted)" : ""}
+              </dd>
             </div>
           ) : null}
         </dl>
@@ -221,6 +252,15 @@ function OrderDetail() {
           <div className="mt-5 rounded-md border border-destructive/30 bg-destructive/10 p-4">
             <p className="text-sm font-semibold text-destructive">Problem report</p>
             <p className="mt-1 text-sm text-muted-foreground">{order.disputeReason}</p>
+          </div>
+        ) : null}
+        {order.disputeResolution ? (
+          <div className="mt-3 rounded-md border border-primary/25 bg-mint p-4">
+            <p className="text-sm font-semibold text-accent-foreground">
+              Resolved{order.status === "REFUNDED" ? " — buyer refunded" : " — payout released"}
+              {order.disputeResolvedAt ? ` · ${formatDateTime(order.disputeResolvedAt)}` : ""}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{order.disputeResolution}</p>
           </div>
         ) : null}
       </div>

@@ -5,15 +5,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Logo } from "@/components/site/Logo";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { accountForEmail, CURRENT_USER } from "@/lib/auth";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: search["redirect"] === "/messenger" ? "/messenger" : undefined,
-    tab: search["tab"] === "register" ? "register" : undefined,
+    tab:
+      search["tab"] === "register" ? "register" : search["tab"] === "buyer" ? "buyer" : undefined,
   }),
   head: () => ({
     meta: [
@@ -36,29 +37,107 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect, tab } = Route.useSearch();
-  const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
+  const { signInWithPassword, signUpBusiness, signUpBuyer } = useAuth();
+  const [busy, setBusy] = useState(false);
 
-  const signInWithEmail = () => {
-    const user = accountForEmail(email);
-    signIn(user);
-    toast.success(`Signed in as ${user.name} (demo)`);
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
 
+  const [bizEmail, setBizEmail] = useState("");
+  const [bizPassword, setBizPassword] = useState("");
+  const [bizName, setBizName] = useState("");
+  const [bizIndustry, setBizIndustry] = useState("");
+  const [bizLocation, setBizLocation] = useState("");
+  const [bizContactPerson, setBizContactPerson] = useState("");
+  const [bizPhone, setBizPhone] = useState("");
+  const [bizDescription, setBizDescription] = useState("");
+
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [buyerPassword, setBuyerPassword] = useState("");
+  const [buyerName, setBuyerName] = useState("");
+
+  const routeAfterAuth = (role: "business" | "buyer" | "admin") => {
     if (redirect === "/messenger") {
       void navigate({ to: "/messenger", replace: true });
-    } else if (user.role === "admin") {
+    } else if (role === "admin") {
       void navigate({ to: "/admin", replace: true });
-    } else if (user.role === "business") {
+    } else if (role === "business") {
       void navigate({ to: "/dashboard", replace: true });
     } else {
       void navigate({ to: "/marketplace", replace: true });
     }
   };
 
-  const registerBusiness = () => {
-    signIn(CURRENT_USER);
-    toast.success("Business registered — verification pending");
-    void navigate({ to: "/dashboard", replace: true });
+  const handleSignIn = async () => {
+    if (!signInEmail || !signInPassword) {
+      toast.error("Enter your email and password.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await signInWithPassword(signInEmail, signInPassword);
+    setBusy(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success("Signed in");
+    if (redirect === "/messenger") {
+      void navigate({ to: "/messenger", replace: true });
+    } else {
+      void navigate({ to: "/marketplace", replace: true });
+    }
+  };
+
+  const handleBusinessSignUp = async () => {
+    if (
+      !bizEmail ||
+      !bizPassword ||
+      !bizName ||
+      !bizIndustry ||
+      !bizLocation ||
+      !bizContactPerson
+    ) {
+      toast.error("Fill in the required business details first.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await signUpBusiness({
+      email: bizEmail,
+      password: bizPassword,
+      businessName: bizName,
+      industry: bizIndustry,
+      location: bizLocation,
+      contactPerson: bizContactPerson,
+      phone: bizPhone,
+      description: bizDescription || `${bizName} lists surplus materials on SurplusHub.`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success("Business account created");
+    routeAfterAuth("business");
+  };
+
+  const handleBuyerSignUp = async () => {
+    if (!buyerEmail || !buyerPassword || !buyerName) {
+      toast.error("Fill in your name, email and password first.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await signUpBuyer({
+      email: buyerEmail,
+      password: buyerPassword,
+      fullName: buyerName,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success("Account created");
+    routeAfterAuth("buyer");
   };
 
   return (
@@ -74,49 +153,135 @@ function AuthPage() {
           <TabsTrigger value="register" className="flex-1">
             Register Business
           </TabsTrigger>
+          <TabsTrigger value="buyer" className="flex-1">
+            Buyer Account
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="signin" className="surface-card mt-5 space-y-3 p-6">
-          <div>
-            <Label>Email</Label>
-            <Input
-              className="mt-1.5"
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-          <F label="Password" placeholder="••••••••" type="password" />
-          <Button className="w-full" onClick={signInWithEmail}>
+          <PasswordField
+            label="Email"
+            type="email"
+            placeholder="you@company.com"
+            value={signInEmail}
+            onChange={setSignInEmail}
+          />
+          <PasswordField
+            label="Password"
+            type="password"
+            value={signInPassword}
+            onChange={setSignInPassword}
+          />
+          <Button className="w-full" onClick={handleSignIn} disabled={busy}>
             Sign In
           </Button>
-          <p className="text-center text-xs text-muted-foreground">
-            Demo prototype — any password works. Sign in with an email containing "admin" for the
-            admin console, or "buyer" for a buyer account — anything else signs in as a demo
-            business.
-          </p>
         </TabsContent>
 
         <TabsContent value="register" className="surface-card mt-5 space-y-3 p-6">
-          <F label="Business name" placeholder="Yangon Circular Plastics" />
-          <F label="Industry" placeholder="Plastic recycling" />
-          <F label="Location" placeholder="Hlaing Tharyar, Yangon" />
-          <F label="Contact person" placeholder="U Aung Myint" />
-          <F label="Business email" placeholder="ops@company.com" type="email" />
-          <F label="Phone" placeholder="+95 9 xxx xxx xxx" />
-          <F label="Password" placeholder="••••••••" type="password" />
-          <F label="Business registration document" type="file" />
-          <Button className="w-full" onClick={registerBusiness}>
+          <PasswordField
+            label="Business name"
+            placeholder="Yangon Circular Plastics"
+            value={bizName}
+            onChange={setBizName}
+          />
+          <PasswordField
+            label="Industry"
+            placeholder="Plastic recycling"
+            value={bizIndustry}
+            onChange={setBizIndustry}
+          />
+          <PasswordField
+            label="Location"
+            placeholder="Hlaing Tharyar, Yangon"
+            value={bizLocation}
+            onChange={setBizLocation}
+          />
+          <PasswordField
+            label="Contact person"
+            placeholder="U Aung Myint"
+            value={bizContactPerson}
+            onChange={setBizContactPerson}
+          />
+          <PasswordField
+            label="Business email"
+            type="email"
+            placeholder="ops@company.com"
+            value={bizEmail}
+            onChange={setBizEmail}
+          />
+          <PasswordField
+            label="Phone"
+            placeholder="+95 9 xxx xxx xxx"
+            value={bizPhone}
+            onChange={setBizPhone}
+          />
+          <div>
+            <Label>Business description</Label>
+            <Textarea
+              className="mt-1.5"
+              value={bizDescription}
+              onChange={(event) => setBizDescription(event.target.value)}
+              placeholder="What you produce and the surplus materials you typically list."
+              rows={3}
+            />
+          </div>
+          <PasswordField
+            label="Password"
+            type="password"
+            value={bizPassword}
+            onChange={setBizPassword}
+          />
+          <Button className="w-full" onClick={handleBusinessSignUp} disabled={busy}>
             Create Business Account
           </Button>
+        </TabsContent>
+
+        <TabsContent value="buyer" className="surface-card mt-5 space-y-3 p-6">
+          <PasswordField
+            label="Your name"
+            placeholder="U Zaw Min Htet"
+            value={buyerName}
+            onChange={setBuyerName}
+          />
+          <PasswordField
+            label="Email"
+            type="email"
+            placeholder="you@company.com"
+            value={buyerEmail}
+            onChange={setBuyerEmail}
+          />
+          <PasswordField
+            label="Password"
+            type="password"
+            value={buyerPassword}
+            onChange={setBuyerPassword}
+          />
+          <Button className="w-full" onClick={handleBuyerSignUp} disabled={busy}>
+            Create Buyer Account
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            For businesses buying materials without selling their own — register as a business
+            instead if you also want to list surplus.
+          </p>
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function F({ label, placeholder, type }: { label: string; placeholder?: string; type?: string }) {
+function PasswordField({
+  label,
+  placeholder,
+  type,
+  value,
+  onChange,
+}: {
+  label: string;
+  placeholder?: string;
+  type?: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
 
@@ -128,6 +293,8 @@ function F({ label, placeholder, type }: { label: string; placeholder?: string; 
           className={isPassword ? "pr-10" : undefined}
           placeholder={placeholder ?? ""}
           type={isPassword && showPassword ? "text" : (type ?? "text")}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
         />
         {isPassword ? (
           <button

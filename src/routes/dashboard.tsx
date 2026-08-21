@@ -46,7 +46,6 @@ import {
   formatMMK,
   priceLabel,
 } from "@/lib/data";
-import { CURRENT_USER } from "@/lib/auth";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -74,9 +73,7 @@ function Dashboard() {
   const { currentUser, isReady } = useAuth();
   const { requests, updateRequestStatus } = usePurchaseRequests();
   const businessId =
-    currentUser?.role === "business" && currentUser.businessId
-      ? currentUser.businessId
-      : CURRENT_USER.businessId;
+    currentUser?.role === "business" && currentUser.businessId ? currentUser.businessId : "";
   const business = useBusinessProfile(businessId);
   const myListings = LISTINGS.filter((listing) => listing.sellerId === businessId);
   const businessTransactions = TRANSACTIONS.filter(
@@ -302,20 +299,23 @@ function Dashboard() {
 
               {isQuoteLocked(request) ? (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Buyer accepted at {formatMMK(request.agreedUnitPrice ?? 0)} / {request.unit}.
-                  Order {request.orderId} is awaiting payment — it appears in the Orders tab once
-                  paid.
+                  Buyer accepted at {formatMMK(request.agreedUnitPrice ?? 0)} / {request.unit}. The
+                  order is awaiting payment — it appears in the Orders tab once paid.
                 </p>
               ) : (
                 (request.status === "Pending" || request.status === "Countered") && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      onClick={() => {
-                        updateRequestStatus(request.id, "Accepted");
-                        toast.success("Price accepted", {
-                          description: "The buyer can now pay through checkout.",
-                        });
+                      onClick={async () => {
+                        try {
+                          await updateRequestStatus(request.id, "Accepted");
+                          toast.success("Price accepted", {
+                            description: "The buyer can now pay through checkout.",
+                          });
+                        } catch {
+                          toast.error("Could not accept the request. Try again.");
+                        }
                       }}
                     >
                       Accept buyer price
@@ -324,9 +324,13 @@ function Dashboard() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => {
-                        updateRequestStatus(request.id, "Rejected");
-                        toast("Request rejected");
+                      onClick={async () => {
+                        try {
+                          await updateRequestStatus(request.id, "Rejected");
+                          toast("Request rejected");
+                        } catch {
+                          toast.error("Could not reject the request. Try again.");
+                        }
                       }}
                     >
                       Reject
@@ -611,16 +615,20 @@ function CounterOfferDialog({ request }: { request: PurchaseRequest }) {
         <DialogFooter>
           <Button
             disabled={parsedUnitPrice <= 0}
-            onClick={() => {
-              counterRequest(request.id, {
-                unitPrice: parsedUnitPrice,
-                deliveryFee: parsedDelivery,
-                note: note.trim(),
-              });
-              setOpen(false);
-              toast.success("Counter offer sent", {
-                description: `${formatMMK(parsedUnitPrice)} per ${request.unit} — ${formatMMK(materialPrice)} total.`,
-              });
+            onClick={async () => {
+              try {
+                await counterRequest(request.id, {
+                  unitPrice: parsedUnitPrice,
+                  deliveryFee: parsedDelivery,
+                  note: note.trim(),
+                });
+                setOpen(false);
+                toast.success("Counter offer sent", {
+                  description: `${formatMMK(parsedUnitPrice)} per ${request.unit} — ${formatMMK(materialPrice)} total.`,
+                });
+              } catch {
+                toast.error("Could not send the counter offer. Try again.");
+              }
             }}
           >
             Send counter offer

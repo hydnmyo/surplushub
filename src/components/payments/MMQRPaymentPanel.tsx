@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "@/components/site/QrCode";
 import { formatMMK } from "@/lib/data";
-import type { Order } from "@/lib/orders";
+import { orderLabel, type Order } from "@/lib/orders";
 
 const SUPPORTED_WALLETS = ["KBZPay", "WavePay", "AYA Pay"];
 
@@ -34,7 +34,9 @@ export function MMQRPaymentPanel({
       <div className="mt-6 grid gap-6 sm:grid-cols-[auto_1fr]">
         <div className="rounded-lg border border-border bg-card p-4 text-center">
           <QrCode value={paymentValue} size={192} />
-          <p className="mt-3 text-xs font-medium text-muted-foreground">Order {order.id}</p>
+          <p className="mt-3 text-xs font-medium text-muted-foreground">
+            Order {orderLabel(order)}
+          </p>
         </div>
 
         <div className="flex flex-col justify-between gap-5">
